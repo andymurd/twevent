@@ -1,0 +1,19 @@
+{
+    "twitter": {
+        "consumer_key": "SECRET",
+        "consumer_secret": "SECRET",
+        "access_token_key": "SECRET",
+        "access_token_secret": "SECRET"
+    },
+    "mongodb": {
+        "connection": "mongodb://SECRET",
+        "cap": {
+            "tweet": 450,
+            "mapreduce": 10
+        }
+    },
+    "mapreduce": {
+        "every": 60000
+    }
+}
+
