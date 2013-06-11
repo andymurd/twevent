@@ -1,2 +1,34 @@
-h1= title
-p Welcome to #{title}
+h1 Tweets with
+  each word in keywords
+    #{word}
+
+p #{total_tweets.count} tweets from #{total_users}, between #{total_tweets.start} and #{total_tweets.end}.
+
+h2 Top Tweeters
+ol
+  each tweeter in top_tweeters
+    li
+      a(href='http://twitter.com/' + tweeter._id rel='nofollow')= '@' + tweeter._id
+      (#{tweeter.count})
+
+h2 Most Popular Users
+ol
+  each tweeter in top_mentions
+    li
+      a(href='http://twitter.com/' + tweeter._id rel='nofollow')= '@' + tweeter._id
+      (#{tweeter.count})
+
+h2 Top Hashtags
+ol
+  each hashtag in top_hashtags
+    li
+      a(href='http://twitter.com/' + hashtag._id rel='nofollow')= '#' + hashtag._id
+      (#{hashtag.count})
+
+h2 Top Links
+ol
+  each link in top_urls
+    li
+      a(href=link._id + hashtag._id rel='nofollow')= link._id
+      (#{link.count})
+

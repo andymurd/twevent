@@ -4,16 +4,9 @@
 /**
  * Module dependencies.
  */
-
 var express  = require('express');
 var nconf    = require('nconf');
-var NTwitter = require('ntwitter');
-var mongoose = require('mongoose');
 var async    = require('async');
-var routes   = require('./routes');
-
-var db;
-var twitter;
 
 var keywords = [
     'awesome',
@@ -26,255 +19,63 @@ var keywords = [
 // Load the configuration
 nconf.argv().env().file({ 'file': __dirname + '/etc/config.json' });
 
-/**
- * Connect to the database using the configuration loaded by nconf
- *
- * @param callback Called upon completion, taking the standard (err, result)
- *        parameters.
- */
-var connect_db = function(callback) {
-    // Create the MongoDB interface
-    mongoose.connect(nconf.get('mongodb:connection'));
-    db = mongoose.connection;
-    db.on('error', function(err) {
-        console.log('MONGODB CONNECTION ERROR: ' + err);
-        callback(err);
-    });
-    db.once('open', function() {
-        console.log('Database open');
-        callback(null, db);
-    });
+// Local modules depend on the configuration
+var routes  = require('./routes');
+var twitter = require('./server/twitter')(nconf);
+var db      = require('./server/mongodb')(nconf);
+var models;
+
+var feature_exec = function(name, fn) {
+    if (nconf.get('features:' + name)) {
+        fn();
+    } else {
+        // Do nothing
+    }
 };
 
-/**
- * Build the MongoDB schemas
- *
- * @return A hash of schemas
- */
-var db_schemas = function() {
-    var Schema = mongoose.Schema;
-    var tweet = new Schema(
-        {
-            id_str: {
-                type: String,
-                unique: true,
-                index: true,
-                required: true
-            },
-            created_at: {
-                type: Date,
-                index: true,
-                required: true
-            },
-            text: {
-                type: String
-            }
-        },
-        {
-            id: false,
-            strict: false,
-            capped: 1024 * 1024 * nconf.get('mongodb.cap.tweet')
-        }
-    );
-    var mapreduce = new Schema(
-        {
-            type: {
-                type: String,
-                index: true,
-                required: true
-            },
-            count: {
-                type: Number,
-                required: true
-            }
-        },
-        {
-            strict: true,
-            capped: 1024 * 1024 * nconf.get('mongodb.cap.mapreduce')
-        }
-    );
-
-    return {
-        tweet: tweet,
-        mapreduce: mapreduce
-    };
-};
-
-/**
- * Transform the MongoDB schemas into Mongoose models
- *
- * @param schemas A hash of MongoDB schemas, as returned by db_schemas()
- * @return A hash of Mongoose models, one per input schema
- */
-var db_models = function(schemas) {
-    return {
-        tweet: mongoose.model('Tweet', schemas.tweet),
-        mapreduce: mongoose.model('MapReduce', schemas.mapreduce)
-    };
-};
-
-/**
- * A function for MongoDB's mapreduce processing that aggregates various
- * statistics about the tweets in the database.
- */
-var mapper = function() {
-    //console.log('Mapping ' + this.id);
-
-    // Count the tweets per user
-    emit(this.user.screen_name, {
-        type: 'user_tweet_count',
-        count: 1
-    });
-
-    // Count the hashtags
-    this.entities.hashtags.forEach(function(hashtag) {
-        emit('#' + hashtag.text, {
-            type: 'hashtag',
-            count: 1
-        });
-    });
-
-    // Count the URLs
-    this.entities.urls.forEach(function(url) {
-        emit(url.expanded_url, {
-            type: 'url',
-            count: 1
-        });
-    });
-
-    // Count the mentions
-    this.entities.user_mentions.forEach(function(mention) {
-        emit(mention.screen_name, {
-            type: 'mention',
-            count: 1
-        });
-    });
-};
-
-/**
- * A function for MongoDB's mapreduce processing that aggregates various
- * statistics about the tweets in the database.
- *
- * @param key The key of the data being reduced
- * @param values An array of values to be reduced
- * @return The reduced values
- */
-var reducer = function(key, values) {
-    //console.log('Reducing ' + key);
-    var retval = {
-        type: values[0].type,
-        count: 0
-    };
-    values.forEach(function(value) {
-        retval.count += value.count;
-    });
-    return retval;
-};
-
-/**
- * Perform a mapreduce operation over the stored tweets
- *
- * @param models A hash of MongoDB models, as returned by db_models()
- * @param callback Called upon completion, taking the standard (err, result)
- *        parameters.
- */
-var mapreduce = function(models, callback) {
-    console.log('Map/Reduce started');
-
-    models.tweet.mapReduce(
-        {
-            map: mapper,
-            reduce: reducer,
-            out: {
-                replace: 'MapReduce'
-            },
-            verbose: true
-        },
-        function(err, model, stats) {
-            console.log('Map/reduce complete');
-            console.log(stats);
-            callback(err, model);
-        }
-    );
-};
-
-/**
- * Connect to Twitter with the credentials configured via nconf
- *
- * @param callback Called upon completion, taking the standard (err, result)
- *        parameters.
- */
-var connect_twitter = function(callback) {
-    // Create the Twitter interface
-    var credentials = {
-        consumer_key: nconf.get('twitter:consumer_key'),
-        consumer_secret: nconf.get('twitter:consumer_secret'),
-        access_token_key: nconf.get('twitter:access_token_key'),
-        access_token_secret: nconf.get('twitter:access_token_secret')
-    };
-    twitter = new NTwitter(credentials);
-
-    // Can we connect?
-    twitter.verifyCredentials(function (err, data) {
-        if (err) {
-            console.log('CREDENTIALS ERROR: ' + err);
-        }
-        callback(err, twitter);
-    });
-};
-
-/**
- * Connect to Twitter's sandbox stream and track the supplied keywords
- *
- * @param keywords An array of keywords to track
- * @param twitter The handle of our Twitter connection
- * @param callback Called upon receipt of each tweet, taking the just the tweet
- *        parameters.
- */
-var stream_twitter = function(keywords, twitter, callback) {
-    twitter.stream(
-        'statuses/filter',
-        {
-            track: keywords
-        },
-        function(stream) {
-            stream.on('data', callback);
-            stream.on('error', function(err) {
-                console.log('STREAM ERROR: ' + err);
-                throw err;
-            });
-        }
-    );
-};
-
+// Connect to Twitter and our MongoDB
 async.parallel(
     {
-        db: connect_db,
-        twitter: connect_twitter
+        db: db.connect,
+        twitter: twitter.connect
     },
     function(err, results) {
         if (err) {
             throw err;
         } else {
-            var model = db_models(db_schemas());
+            // Set up the MongoDB models
+            models = db.models(db.schemas());
 
-            stream_twitter(keywords, results.twitter, function(tweet) {
-                //console.log(tweet.text);
-                var data = new model.tweet(tweet);
-                data.save(function(err) {
+            if (nconf.get('features:twitter:stream')) {
+                // Start listening on the Twitter sandbox stream
+                twitter.stream(keywords, function(err, tweet) {
                     if (err) {
-                        console.log('MONGODB SAVE ERROR: ' + err);
+                        console.log('TWITTER STREAM ERROR: ' + err);
                         throw err;
+                    }
+
+                    if (nconf.get('features:mongodb:save_tweets')) {
+                        // Save the tweet to the database
+                        var data = new models.tweet(tweet);
+                        data.save(function(err) {
+                            if (err) {
+                                console.log('MONGODB SAVE ERROR: ' + err);
+                                throw err;
+                            }
+                        });
                     }
                 });
-            });
+            }
 
-            setTimer(function() {
-                mapreduce(model, function(err, results) {
-                    if (err) {
-                        throw err;
-                    }
-                );
+            // After a few seconds, start collating statistics
+            setTimeout(function() {
+                if (nconf.get('features:mongodb:mapreduce')) {
+                    db.mapreduce(models, function(err, results) {
+                        if (err) {
+                            throw err;
+                        }
+                    });
+                }
             }, nconf.get('mapreduce:every'));
         }
     }
@@ -304,9 +105,53 @@ app.configure('production', function() {
 });
 
 // Routes
-app.get('/', routes.index);
+app.get('/', function(req, res) {
+    // Find the data to display
+    async.parallel({
+        top_tweeters: function(callback) {
+            db.find_top_tweeters(models, callback);
+        },
+        top_urls: function(callback) {
+            db.find_top_urls(models, callback);
+        },
+        top_mentions: function(callback) {
+            db.find_top_mentions(models, callback);
+        },
+        top_hashtags: function(callback) {
+            db.find_top_hashtags(models, callback);
+        },
+        total_tweets: function(callback) {
+            db.find_total_tweets(models, callback);
+        },
+        total_users: function(callback) {
+            db.count_users(models, callback);
+        }
+    }, function(err, results) {
+        if (err) {
+            throw err;
+        }
 
-app.listen(3000, function(){
+        // Display the data
+        req.keywords     = keywords;
+        req.total_users  = results.total_users;
+        req.total_tweets = results.total_tweets;
+        req.top_tweeters = results.top_tweeters;
+        req.top_urls     = results.top_urls;
+        req.top_mentions = results.top_mentions;
+        req.top_hashtags = results.top_hashtags;
+
+console.log('keywords     = ' + keywords);
+console.log('total_users  = ' + results.total_users);
+console.log('total_tweets = ' + results.total_tweets);
+console.log('top_tweeters = ' + results.top_tweeters);
+console.log('top_urls     = ' + results.top_urls);
+console.log('top_mentions = ' + results.top_mentions);
+console.log('top_hashtags = ' + results.top_hashtags);
+        routes.index(req, res);
+    });
+});
+
+app.listen(3000, function() {
   console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 });
 

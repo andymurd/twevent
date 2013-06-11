@@ -14,6 +14,17 @@
     },
     "mapreduce": {
         "every": 60000
+    },
+    "features": {
+        "twitter": {
+            "connect": true,
+            "stream": true
+        },
+        "mongodb": {
+            "connect": true,
+            "save_tweets": true,
+            "map_reduce": true
+        }
     }
 }
 

@@ -24,6 +24,14 @@ module.exports = function (nconf) {
      * @private
      */
     var mapper = function() {
+        // Count the total tweets
+        emit('total_tweets', {
+            type: 'total',
+            count: 1,
+            start: this.created_at,
+            end: this.created_at
+        });
+
         // Count the tweets per user
         emit(this.user.screen_name, {
             type: 'user_tweet_count',
@@ -74,6 +82,12 @@ module.exports = function (nconf) {
         };
         values.forEach(function(value) {
             retval.count += value.count;
+            if (value.start && (retval.start === undefined || retval.start > value.start)) {
+                retval.start = value.start;
+            }
+            if (value.end && (retval.end === undefined || retval.end < value.end)) {
+                retval.end = value.end;
+            }
         });
         return retval;
     };
@@ -140,18 +154,20 @@ module.exports = function (nconf) {
             );
             var mapreduce = new Schema(
                 {
-                    type: {
-                        type: String,
-                        index: true,
-                        required: true
-                    },
-                    count: {
-                        type: Number,
-                        required: true
+                    value: {
+                        type: {
+                            type: String,
+                            index: true,
+                            required: true
+                        },
+                        count: {
+                            type: Number,
+                            required: true
+                        }
                     }
                 },
                 {
-                    strict: true,
+                    strict: false,
                     capped: 1024 * 1024 * nconf.get('mongodb.cap.mapreduce')
                 }
             );
@@ -208,6 +224,111 @@ module.exports = function (nconf) {
                     callback(err, model);
                 }
             );
+        },
+
+        /**
+         * Find the top tweeters (based on tweets per user).
+         *
+         * @param models A hash of MongoDB models, as returned by models()
+         * @param callback Called upon completion, taking the
+         * standard (err, result) parameters.
+         * @name find_top_tweeters
+         * @memberOf mongodb
+         * @field
+         * @private
+         */
+        find_top_tweeters: function(models, callback) {
+            models.mapreduce.find({
+                'value.type': 'user_tweet_count'
+            }).sort({'value.count': -1}).limit(10).exec(function(err, result) {
+console.log('find_top_tweeters ' + JSON.stringify(result) + ' - ' + err);
+callback(err, result);
+});
+        },
+
+        /**
+         * Find the top hashtags (based on the number of tweets).
+         *
+         * @param models A hash of MongoDB models, as returned by models()
+         * @param callback Called upon completion, taking the
+         * standard (err, result) parameters.
+         * @name find_top_hashtags
+         * @memberOf mongodb
+         * @field
+         * @private
+         */
+        find_top_hashtags: function(models, callback) {
+            models.mapreduce.find({
+                'value.type': 'hashtag'
+            }).sort({'value.count': -1}).limit(10).exec(callback);
+        },
+
+        /**
+         * Find the top URLs (based on the number of tweets).
+         *
+         * @param models A hash of MongoDB models, as returned by models()
+         * @param callback Called upon completion, taking the
+         * standard (err, result) parameters.
+         * @name find_top_urls
+         * @memberOf mongodb
+         * @field
+         * @private
+         */
+        find_top_urls: function(models, callback) {
+            models.mapreduce.find({
+                'value.type': 'url'
+            }).sort({'value.count': -1}).limit(10).exec(callback);
+        },
+
+        /**
+         * Find the top mentioned users (based on the number of tweets).
+         *
+         * @param models A hash of MongoDB models, as returned by models()
+         * @param callback Called upon completion, taking the
+         * standard (err, result) parameters.
+         * @name find_top_mentions
+         * @memberOf mongodb
+         * @field
+         * @private
+         */
+        find_top_mentions: function(models, callback) {
+            models.mapreduce.find({
+                'value.type': 'mention'
+            }).sort({'value.count': -1}).limit(10).exec(callback);
+        },
+
+        /**
+         * Find the total number of Tweets and the date range they cover
+         *
+         * @param models A hash of MongoDB models, as returned by models()
+         * @param callback Called upon completion, taking the
+         * standard (err, result) parameters.
+         * @name find_top_mentions
+         * @memberOf mongodb
+         * @field
+         * @private
+         */
+        find_total_tweets: function(models, callback) {
+            models.mapreduce.findOne({
+                'value.type': 'total'
+            }).exec(callback);
+        },
+
+        /**
+         * Find the total number of users
+         *
+         * @param models A hash of MongoDB models, as returned by models()
+         * @param callback Called upon completion, taking the
+         * standard (err, result) parameters.
+         * @name count_users
+         * @memberOf mongodb
+         * @field
+         * @private
+         */
+        count_users: function(models, callback) {
+            models.mapreduce.count({
+                'value.type': 'user_tweet_count'
+            }).exec(callback);
         }
     };
 };
