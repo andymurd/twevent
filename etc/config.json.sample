@@ -23,7 +23,7 @@
         "mongodb": {
             "connect": true,
             "save_tweets": true,
-            "map_reduce": true
+            "mapreduce": true
         }
     }
 }

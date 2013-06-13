@@ -27,26 +27,29 @@ var models;
 
 var feature_exec = function(name, fn) {
     if (nconf.get('features:' + name)) {
-        fn();
+        return fn;
     } else {
         // Do nothing
+        return function(callback) {
+            console.log('WARNING: Feature ' + name + ' is disabled');
+            if (callback) {
+                callback();
+            }
+        };
     }
 };
 
 // Connect to Twitter and our MongoDB
 async.parallel(
     {
-        db: db.connect,
-        twitter: twitter.connect
+        db: feature_exec('mongodb:connect', db.connect),
+        twitter: feature_exec('twitter:connect', twitter.connect)
     },
     function(err, results) {
         if (err) {
             throw err;
         } else {
-            // Set up the MongoDB models
-            models = db.models(db.schemas());
-
-            if (nconf.get('features:twitter:stream')) {
+            feature_exec('twitter:stream', function() {
                 // Start listening on the Twitter sandbox stream
                 twitter.stream(keywords, function(err, tweet) {
                     if (err) {
@@ -54,29 +57,27 @@ async.parallel(
                         throw err;
                     }
 
-                    if (nconf.get('features:mongodb:save_tweets')) {
+                    feature_exec('mongodb:save_tweets', function() {
                         // Save the tweet to the database
-                        var data = new models.tweet(tweet);
-                        data.save(function(err) {
+                        db.save_tweet(tweet, function(err) {
                             if (err) {
                                 console.log('MONGODB SAVE ERROR: ' + err);
                                 throw err;
                             }
                         });
-                    }
+                    })();
                 });
-            }
+            })();
 
             // After a few seconds, start collating statistics
-            setTimeout(function() {
-                if (nconf.get('features:mongodb:mapreduce')) {
-                    db.mapreduce(models, function(err, results) {
-                        if (err) {
-                            throw err;
-                        }
-                    });
-                }
-            }, nconf.get('mapreduce:every'));
+            console.log('Timer set for map/reduce');
+            setTimeout(feature_exec('mongodb:mapreduce', function() {
+                db.mapreduce(function(err, results) {
+                    if (err) {
+                        throw err;
+                    }
+                });
+            }), nconf.get('mapreduce:every'));
         }
     }
 );
@@ -109,22 +110,22 @@ app.get('/', function(req, res) {
     // Find the data to display
     async.parallel({
         top_tweeters: function(callback) {
-            db.find_top_tweeters(models, callback);
+            db.find_top_tweeters(callback);
         },
         top_urls: function(callback) {
-            db.find_top_urls(models, callback);
+            db.find_top_urls(callback);
         },
         top_mentions: function(callback) {
-            db.find_top_mentions(models, callback);
+            db.find_top_mentions(callback);
         },
         top_hashtags: function(callback) {
-            db.find_top_hashtags(models, callback);
+            db.find_top_hashtags(callback);
         },
         total_tweets: function(callback) {
-            db.find_total_tweets(models, callback);
+            db.find_total_tweets(callback);
         },
         total_users: function(callback) {
-            db.count_users(models, callback);
+            db.count_users(callback);
         }
     }, function(err, results) {
         if (err) {
@@ -140,13 +141,13 @@ app.get('/', function(req, res) {
         req.top_mentions = results.top_mentions;
         req.top_hashtags = results.top_hashtags;
 
-console.log('keywords     = ' + keywords);
-console.log('total_users  = ' + results.total_users);
-console.log('total_tweets = ' + results.total_tweets);
-console.log('top_tweeters = ' + results.top_tweeters);
-console.log('top_urls     = ' + results.top_urls);
-console.log('top_mentions = ' + results.top_mentions);
-console.log('top_hashtags = ' + results.top_hashtags);
+console.log('keywords     = ' + JSON.stringify(keywords));
+console.log('total_users  = ' + JSON.stringify(results.total_users));
+console.log('total_tweets = ' + JSON.stringify(results.total_tweets));
+console.log('top_tweeters = ' + JSON.stringify(results.top_tweeters));
+console.log('top_urls     = ' + JSON.stringify(results.top_urls));
+console.log('top_mentions = ' + JSON.stringify(results.top_mentions));
+console.log('top_hashtags = ' + JSON.stringify(results.top_hashtags));
         routes.index(req, res);
     });
 });
