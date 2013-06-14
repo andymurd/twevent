@@ -114,6 +114,9 @@ module.exports = function (nconf) {
             if (value.url) {
                 retval.url = value.url;
             }
+            if (value.display) {
+                retval.display = value.display;
+            }
 
             if (value.start && (retval.start === undefined || retval.start > value.start)) {
                 retval.start = value.start;
@@ -172,6 +175,7 @@ module.exports = function (nconf) {
                         required: true
                     },
                     screen_name: String,
+                    display: String,
                     hashtag: String,
                     url: String,
                     start: Date,
