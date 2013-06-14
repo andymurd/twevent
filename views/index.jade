@@ -3,8 +3,8 @@ h1 Tweets with&nbsp;
     q= word
     |&nbsp;
 
-- var tps = total_tweets.value.count / (total_tweets.value.end.getTime() - total_tweets.value.start.getTime()) * 1000.0;
-p #{total_tweets.value.count} tweets from #{total_users} users, between #{total_tweets.value.start} and #{total_tweets.value.end}. That's an average of 
+- var tps = total_tweets.value.count / (total_tweets.value.extra.end.getTime() - total_tweets.value.extra.start.getTime()) * 1000.0;
+p #{total_tweets.value.count} tweets from #{total_users} users, between #{total_tweets.value.extra.start} and #{total_tweets.value.extra.end}. That's an average of 
   - if (tps > 1.0) {
   | #{tps.toFixed(3)}
   | tweets per second.
@@ -20,27 +20,27 @@ h2 Top Tweeters
 ol
   each tweeter in top_tweeters
     li
-      a(href='http://twitter.com/#{tweeter.value.screen_name}', rel='nofollow')= '@' + tweeter.value.screen_name
+      a(href='http://twitter.com/#{tweeter.value.extra.screen_name}', rel='nofollow')= '@' + tweeter.value.extra.screen_name
       | &nbsp;(#{tweeter.value.count})
 
 h2 Most Popular Users
 ol
   each tweeter in top_mentions
     li
-      a(href='http://twitter.com/' + tweeter.value.screen_name, rel='nofollow')= '@' + tweeter.value.screen_name
+      a(href='http://twitter.com/' + tweeter.value.extra.screen_name, rel='nofollow')= '@' + tweeter.value.extra.screen_name
       | &nbsp;(#{tweeter.value.count})
 
 h2 Top Hashtags
 ol
   each hashtag in top_hashtags
     li
-      a(href='http://twitter.com/search?q=' + hashtag.value.hashtag, rel='nofollow')= hashtag.value.hashtag
+      a(href='http://twitter.com/search?q=' + hashtag.value.extra.hashtag, rel='nofollow')= hashtag.value.extra.hashtag
       | &nbsp;(#{hashtag.value.count})
 
 h2 Top Links
 ol
   each link in top_urls
     li
-      a(href=link.value.url, rel='nofollow')= link.value.display
+      a(href=link.value.extra.url, rel='nofollow')= link.value.extra.display
       | &nbsp;(#{link.value.count})
 

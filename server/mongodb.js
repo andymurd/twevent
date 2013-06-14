@@ -31,13 +31,17 @@ module.exports = function (nconf) {
         emit('total_tweets', {
             type: 'total',
             count: 1,
-            start: this.created_at,
-            end: this.created_at
+            extra: {
+                start: this.created_at,
+                end: this.created_at
+            }
         });
 
         // Count the tweets per user
         emit('tweets_per_user:' + this.user.screen_name, {
-            screen_name: this.user.screen_name,
+            extra: {
+                screen_name: this.user.screen_name,
+            },
             type: 'user_tweet_count',
             count: 1
         });
@@ -45,7 +49,9 @@ module.exports = function (nconf) {
         // Count the hashtags
         this.entities.hashtags.forEach(function(hashtag) {
             emit('#' + hashtag.text, {
-                hashtag: '#' + hashtag.text,
+                extra: {
+                    hashtag: '#' + hashtag.text,
+                },
                 type: 'hashtag',
                 count: 1
             });
@@ -68,8 +74,10 @@ module.exports = function (nconf) {
             }
 
             emit(full_url, {
-                url: full_url,
-                display: display_url,
+                extra: {
+                    url: full_url,
+                    display: display_url,
+                },
                 type: 'url',
                 count: 1
             });
@@ -78,7 +86,9 @@ module.exports = function (nconf) {
         // Count the mentions
         this.entities.user_mentions.forEach(function(mention) {
             emit('mention:' + mention.screen_name, {
-                screen_name: mention.screen_name,
+                extra: {
+                    screen_name: mention.screen_name,
+                },
                 type: 'mention',
                 count: 1
             });
@@ -100,29 +110,23 @@ module.exports = function (nconf) {
     var reducer = function(key, values) {
         var retval = {
             type: values[0].type,
+            extra: values[0].extra,
             count: 0
         };
         values.forEach(function(value) {
             retval.count += value.count;
 
-            if (value.screen_name) {
-                retval.screen_name = value.screen_name;
-            }
-            if (value.hashtag) {
-                retval.hashtag = value.hashtag;
-            }
-            if (value.url) {
-                retval.url = value.url;
-            }
-            if (value.display) {
-                retval.display = value.display;
-            }
+            if (value.extra) {
+                // Don't overwrite the start/end timestamps unless the new data expands the range
+                if (value.extra.start && retval.extra.start && retval.extra.start < value.extra.start) {
+                    value.extra.start = retval.extra.start;
+                }
+                if (value.extra.end && retval.extra.end && retval.extra.end > value.extra.end) {
+                    value.extra.end = retval.extra.end;
+                }
 
-            if (value.start && (retval.start === undefined || retval.start > value.start)) {
-                retval.start = value.start;
-            }
-            if (value.end && (retval.end === undefined || retval.end < value.end)) {
-                retval.end = value.end;
+                // Overwrite ALL the extra data
+                retval.extra = value.extra;
             }
         });
         return retval;
@@ -174,12 +178,7 @@ module.exports = function (nconf) {
                         type: Number,
                         required: true
                     },
-                    screen_name: String,
-                    display: String,
-                    hashtag: String,
-                    url: String,
-                    start: Date,
-                    end: Date
+                    extra: Object
                 }
             },
             {

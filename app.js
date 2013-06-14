@@ -133,21 +133,9 @@ app.get('/', function(req, res) {
         }
 
         // Display the data
-        req.keywords     = keywords;
-        req.total_users  = results.total_users;
-        req.total_tweets = results.total_tweets;
-        req.top_tweeters = results.top_tweeters;
-        req.top_urls     = results.top_urls;
-        req.top_mentions = results.top_mentions;
-        req.top_hashtags = results.top_hashtags;
+        results.keywords = keywords;
+        req.display_data = results;
 
-console.log('keywords     = ' + JSON.stringify(keywords));
-console.log('total_users  = ' + JSON.stringify(results.total_users));
-console.log('total_tweets = ' + JSON.stringify(results.total_tweets));
-console.log('top_tweeters = ' + JSON.stringify(results.top_tweeters));
-console.log('top_urls     = ' + JSON.stringify(results.top_urls));
-console.log('top_mentions = ' + JSON.stringify(results.top_mentions));
-console.log('top_hashtags = ' + JSON.stringify(results.top_hashtags));
         routes.index(req, res);
     });
 });
