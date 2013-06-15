@@ -14,7 +14,7 @@ a {
 .list, .chart {
     float: left;
     width: 400px;
-    height: 280px;
+    height: 320px;
 }
 
 .chart .axis path, .chart .axis line {
@@ -25,8 +25,17 @@ a {
 
 .chart .bar {
     fill: steelblue;
+    shape-rendering: crispEdges;
 }
 
 .chart .notation {
     fill: white;
 }
+
+.chart .y text {
+    font-size: 14px;
+    fill: #00B7FF;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
