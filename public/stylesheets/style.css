@@ -6,3 +6,27 @@ body {
 a {
   color: #00B7FF;
 }
+
+.clearfix {
+    clear: both;
+}
+
+.list, .chart {
+    float: left;
+    width: 400px;
+    height: 280px;
+}
+
+.chart .axis path, .chart .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.chart .bar {
+    fill: steelblue;
+}
+
+.chart .notation {
+    fill: white;
+}
