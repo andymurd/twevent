@@ -40,7 +40,7 @@ module.exports = function (nconf) {
         // Count the tweets per user
         emit('tweets_per_user:' + this.user.screen_name, {
             extra: {
-                screen_name: this.user.screen_name,
+                screen_name: this.user.screen_name
             },
             type: 'user_tweet_count',
             count: 1
@@ -50,7 +50,7 @@ module.exports = function (nconf) {
         this.entities.hashtags.forEach(function(hashtag) {
             emit('#' + hashtag.text, {
                 extra: {
-                    hashtag: '#' + hashtag.text,
+                    hashtag: '#' + hashtag.text
                 },
                 type: 'hashtag',
                 count: 1
@@ -76,7 +76,7 @@ module.exports = function (nconf) {
             emit(full_url, {
                 extra: {
                     url: full_url,
-                    display: display_url,
+                    display: display_url
                 },
                 type: 'url',
                 count: 1
@@ -87,7 +87,7 @@ module.exports = function (nconf) {
         this.entities.user_mentions.forEach(function(mention) {
             emit('mention:' + mention.screen_name, {
                 extra: {
-                    screen_name: mention.screen_name,
+                    screen_name: mention.screen_name
                 },
                 type: 'mention',
                 count: 1
@@ -187,6 +187,11 @@ module.exports = function (nconf) {
             }
         );
     
+        mapreduce.index({
+            'value.type': 1,
+            'value.count': -1
+        });
+
         return {
             tweet: tweet,
             mapreduce: mapreduce
@@ -204,6 +209,12 @@ module.exports = function (nconf) {
      * @return A hash of Mongoose models, one per input schema
      */
     var models = function(schemas) {
+        schemas.mapreduce.on('index', function (err) {
+            if (err) {
+                console.error(err); // error occurred during index creation
+            }
+        });
+
         return {
             tweet: mongoose.model('Tweet', schemas.tweet),
             mapreduce: mongoose.model('mapreduces', schemas.mapreduce)
@@ -223,7 +234,10 @@ module.exports = function (nconf) {
          */
         connect: function(callback) {
             // Create the MongoDB interface
-            mongoose.connect(nconf.get('mongodb:connection'));
+            var connection = process.env.MONGOHQ_URL ||
+                             process.env.MONGOLAB_URI ||
+                             nconf.get('mongodb:connection');
+            mongoose.connect(nconf.get(connection));
             db = mongoose.connection;
             db.on('error', function(err) {
                 console.log('MONGODB CONNECTION ERROR: ' + err);
@@ -237,6 +251,7 @@ module.exports = function (nconf) {
                 callback(null, db);
             });
         },
+
         /**
          * Perform a mapreduce operation over the stored tweets
          *
