@@ -237,7 +237,7 @@ module.exports = function (nconf) {
             var connection = process.env.MONGOHQ_URL ||
                              process.env.MONGOLAB_URI ||
                              nconf.get('mongodb:connection');
-            mongoose.connect(nconf.get(connection));
+            mongoose.connect(connection);
             db = mongoose.connection;
             db.on('error', function(err) {
                 console.log('MONGODB CONNECTION ERROR: ' + err);

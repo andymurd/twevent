@@ -15,6 +15,9 @@
     "mapreduce": {
         "every": 60000
     },
+    "flush_tweets": {
+        "every": 5000
+    },
     "features": {
         "twitter": {
             "connect": true,

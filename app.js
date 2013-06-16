@@ -49,6 +49,9 @@ async.parallel(
         if (err) {
             throw err;
         } else {
+            // Buffer for unsaved tweets
+            var tweets = [];
+
             feature_exec('twitter:stream', function() {
                 // Start listening on the Twitter sandbox stream
                 twitter.stream(keywords, function(err, tweet) {
@@ -56,17 +59,33 @@ async.parallel(
                         console.log('TWITTER STREAM ERROR: ' + err);
                         throw err;
                     }
+                    tweets.push(tweet);
+                });
+            })();
 
-                    feature_exec('mongodb:save_tweets', function() {
-                        // Save the tweet to the database
-                        db.save_tweet(tweet, function(err) {
+            feature_exec('mongodb:save_tweets', function() {
+                setInterval(function() {
+                    // Copy and clear the bufferr
+                    var tweets_copy = tweets;
+                    tweets = [];
+                    console.log('Flushing ' + tweets_copy.length + ' to database');
+                    var start = Date.now();
+
+                    // Save the tweets to the database
+                    async.each(
+                        tweets_copy, 
+                        function(tweet, callback) {
+                           db.save_tweet(tweet, callback);
+                        }, function(err) {
                             if (err) {
                                 console.log('MONGODB SAVE ERROR: ' + err);
                                 throw err;
                             }
-                        });
-                    })();
-                });
+                            var end = Date.now();
+                            console.log('Flush finished after ' + (end - start) + ' milliseconds');
+                        }
+                    );
+                }, nconf.get('flush_tweets:every'));
             })();
 
             // After a few seconds, start collating statistics
