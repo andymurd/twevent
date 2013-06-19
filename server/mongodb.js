@@ -5,12 +5,23 @@
  * Module dependencies.
  */
 var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
+var ObjectID = mongoose.mongo.BSONPure.ObjectID;
 
 // The database handle
 var db;
 
 // The data models
 var models;
+
+// The ObjectId of the last tweet that was successfully saved to the database
+var last_tweet;
+
+// The start of the range of records to incrementally mapreduce
+var mapred_from;
+
+// The end of the range of records to incrementally mapreduce
+var mapred_to;
 
 /**
  * @namespace Defines the connection to a MongoDB database
@@ -142,7 +153,6 @@ module.exports = function (nconf) {
      * @return A hash of schemas
      */
     var schemas = function() {
-        var Schema = mongoose.Schema;
         var tweet = new Schema(
             {
                 id: {
@@ -209,16 +219,100 @@ module.exports = function (nconf) {
      * @return A hash of Mongoose models, one per input schema
      */
     var models = function(schemas) {
+        // Check for errors when creating indexes
+        schemas.tweet.on('index', function (err) {
+            if (err) {
+                console.error('INDEX CREATION ERROR on collection tweet: ' + err);
+            }
+        });
         schemas.mapreduce.on('index', function (err) {
             if (err) {
-                console.error(err); // error occurred during index creation
+                console.error('INDEX CREATION ERROR on collection mapreduce: ' + err);
             }
         });
 
+        // Create the models
         return {
             tweet: mongoose.model('Tweet', schemas.tweet),
             mapreduce: mongoose.model('mapreduces', schemas.mapreduce)
         };
+    };
+
+    /**
+     * Perform a mapreduce operation over all of the stored tweets
+     *
+     * @name initial_mapreduce
+     * @memberOf mongodb
+     * @field
+     * @private
+     * @param to A timestamp of the last tweet to process
+     * @param callback Called upon completion, taking the standard (err, result)
+     *        parameters.
+     */
+    var initial_mapreduce = function(to, callback) {
+        console.log('Initial Map/Reduce started');
+    
+console.log('Before objectID ' + ObjectID.createFromTime(to.getTime()/1000).toString());
+        models.tweet.mapReduce(
+            {
+                map: mapper,
+                reduce: reducer,
+                out: {
+                    replace: 'mapreduces'
+                },
+                query: {
+                    _id: {
+                        $lt: ObjectID.createFromTime(to.getTime()/1000)
+                    }
+                },
+                verbose: true
+            },
+            function(err, model, stats) {
+                console.log('Initial Map/reduce complete');
+                console.log(stats);
+                callback(err, model);
+            }
+        );
+    };
+
+    /**
+     * Perform a mapreduce operation over any newly stored tweets
+     *
+     * @name incremental_mapreduce
+     * @memberOf mongodb
+     * @field
+     * @private
+     * @param from The timestamp of the last tweet processed in a previous mapreduce run
+     * @param to A timestamp of the last tweet to process
+     * @param callback Called upon completion, taking the standard (err, result)
+     *        parameters.
+     */
+    var incremental_mapreduce = function(from, to, callback) {
+        console.log('Incremental Map/Reduce started');
+    
+console.log('After objectID ' + ObjectID.createFromTime(from.getTime()/1000).toString());
+console.log('Before objectID ' + ObjectID.createFromTime(to.getTime()/1000).toString());
+        models.tweet.mapReduce(
+            {
+                map: mapper,
+                reduce: reducer,
+                out: {
+                    reduce: 'mapreduces'
+                },
+                query: {
+                    _id: {
+                        $gte: ObjectID.createFromTime(from.getTime()/1000),
+                        $lt: ObjectID.createFromTime(to.getTime()/1000)
+                    }
+                },
+                verbose: true
+            },
+            function(err, model, stats) {
+                console.log('Incremental Map/reduce complete');
+                console.log(stats);
+                callback(err, model);
+            }
+        );
     };
 
     return {
@@ -263,23 +357,29 @@ module.exports = function (nconf) {
          *        parameters.
          */
         mapreduce: function(callback) {
-            console.log('Map/Reduce started');
-        
-            models.tweet.mapReduce(
-                {
-                    map: mapper,
-                    reduce: reducer,
-                    out: {
-                        replace: 'mapreduces'
-                    },
-                    verbose: true
-                },
-                function(err, model, stats) {
-                    console.log('Map/reduce complete');
-                    console.log(stats);
-                    callback(err, model);
+            var inner_callback = function(err, result) {
+                if (!err) {
+                    mapred_from = mapred_to;
                 }
-            );
+                callback(err, result);
+            };
+
+            // We are not attempting to mapreduce documents stored in the last
+            // second because those writes may be continuing
+            if (last_tweet) {
+                mapred_to = last_tweet.getTimestamp();
+            } else {
+                mapred_to = new Date();
+            }
+            mapred_to.setSeconds(mapred_to.getSeconds()-1);
+            console.log('Map reduce tweets >= ' + mapred_from);
+            console.log('Map reduce tweets < ' + mapred_to);
+
+            if (mapred_from) {
+                incremental_mapreduce(mapred_from, mapred_to, inner_callback);
+            } else {
+                initial_mapreduce(mapred_to, inner_callback);
+            }
         },
 
         /**
@@ -299,6 +399,10 @@ module.exports = function (nconf) {
                 if (err && err.code === 11000) {
                     // Ignore duplicate key
                     err = undefined;
+                    console.log('Duplicate key');
+                }
+                if (result) {
+                    last_tweet = result._id;
                 }
                 callback(err, result);
             });

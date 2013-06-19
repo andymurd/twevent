@@ -25,6 +25,14 @@ var twitter = require('./server/twitter')(nconf);
 var db      = require('./server/mongodb')(nconf);
 var models;
 
+/**
+ * Wrap the supplied functionality in a check to see if the feature has been enabled
+ *
+ * @param name The feature name, as found in the configuration file
+ * @param fn The function to wrap. This must take one parameter - a callback with the usual (err, result)
+ *        parameters.
+ * @return A function that checks the feature and conditionally executes the functionality
+ */
 var feature_exec = function(name, fn) {
     if (nconf.get('features:' + name)) {
         return fn;
@@ -68,12 +76,11 @@ async.parallel(
                     // Copy and clear the bufferr
                     var tweets_copy = tweets;
                     tweets = [];
-                    console.log('Flushing ' + tweets_copy.length + ' to database');
                     var start = Date.now();
 
                     // Save the tweets to the database
                     async.each(
-                        tweets_copy, 
+                        tweets_copy,
                         function(tweet, callback) {
                            db.save_tweet(tweet, callback);
                         }, function(err) {
@@ -82,21 +89,23 @@ async.parallel(
                                 throw err;
                             }
                             var end = Date.now();
-                            console.log('Flush finished after ' + (end - start) + ' milliseconds');
+                            console.log('Flushed ' + tweets_copy.length + ' to database after ' + (end - start) + ' milliseconds');
                         }
                     );
                 }, nconf.get('flush_tweets:every'));
             })();
 
             // After a few seconds, start collating statistics
-            console.log('Timer set for map/reduce');
-            setTimeout(feature_exec('mongodb:mapreduce', function() {
+            var run_mapreduce = function() {
                 db.mapreduce(function(err, results) {
                     if (err) {
                         throw err;
                     }
+                    setTimeout(run_mapreduce, nconf.get('mapreduce:every'));
                 });
-            }), nconf.get('mapreduce:every'));
+            };
+            console.log('Timer set for map/reduce');
+            setTimeout(feature_exec('mongodb:mapreduce', run_mapreduce), nconf.get('mapreduce:every'));
         }
     }
 );
