@@ -5,6 +5,7 @@
  * Module dependencies.
  */
 var express  = require('express');
+var socketio = require('socket.io');
 var nconf    = require('nconf');
 var async    = require('async');
 
@@ -20,9 +21,9 @@ var keywords = [
 nconf.argv().env().file({ 'file': __dirname + '/etc/config.json' });
 
 // Local modules depend on the configuration
-var routes  = require('./routes');
-var twitter = require('./server/twitter')(nconf);
-var db      = require('./server/mongodb')(nconf);
+var routes   = require('./routes');
+var twitter  = require('./server/twitter')(nconf);
+var db       = require('./server/mongodb')(nconf);
 var models;
 
 /**
@@ -46,69 +47,6 @@ var feature_exec = function(name, fn) {
         };
     }
 };
-
-// Connect to Twitter and our MongoDB
-async.parallel(
-    {
-        db: feature_exec('mongodb:connect', db.connect),
-        twitter: feature_exec('twitter:connect', twitter.connect)
-    },
-    function(err, results) {
-        if (err) {
-            throw err;
-        } else {
-            // Buffer for unsaved tweets
-            var tweets = [];
-
-            feature_exec('twitter:stream', function() {
-                // Start listening on the Twitter sandbox stream
-                twitter.stream(keywords, function(err, tweet) {
-                    if (err) {
-                        console.log('TWITTER STREAM ERROR: ' + err);
-                        throw err;
-                    }
-                    tweets.push(tweet);
-                });
-            })();
-
-            feature_exec('mongodb:save_tweets', function() {
-                setInterval(function() {
-                    // Copy and clear the bufferr
-                    var tweets_copy = tweets;
-                    tweets = [];
-                    var start = Date.now();
-
-                    // Save the tweets to the database
-                    async.each(
-                        tweets_copy,
-                        function(tweet, callback) {
-                           db.save_tweet(tweet, callback);
-                        }, function(err) {
-                            if (err) {
-                                console.log('MONGODB SAVE ERROR: ' + err);
-                                throw err;
-                            }
-                            var end = Date.now();
-                            console.log('Flushed ' + tweets_copy.length + ' to database after ' + (end - start) + ' milliseconds');
-                        }
-                    );
-                }, nconf.get('flush_tweets:every'));
-            })();
-
-            // After a few seconds, start collating statistics
-            var run_mapreduce = function() {
-                db.mapreduce(function(err, results) {
-                    if (err) {
-                        throw err;
-                    }
-                    setTimeout(run_mapreduce, nconf.get('mapreduce:every'));
-                });
-            };
-            console.log('Timer set for map/reduce');
-            setTimeout(feature_exec('mongodb:mapreduce', run_mapreduce), nconf.get('mapreduce:every'));
-        }
-    }
-);
 
 // Create the HTTP app
 var app = module.exports = express.createServer();
@@ -135,6 +73,22 @@ app.configure('production', function() {
 
 // Routes
 app.get('/', function(req, res) {
+    routes.index(req, res);
+});
+
+var io = socketio.listen(app.listen(3000, function() {
+  console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+}));
+
+io.sockets.on('connection', function (socket) {
+    console.log('New client connection');
+
+    socket.on('disconnect', function () {
+        console.log('Client disconnect');
+    });
+});
+
+var broadcast_update = function() {
     // Find the data to display
     async.parallel({
         top_tweeters: function(callback) {
@@ -160,17 +114,78 @@ app.get('/', function(req, res) {
             throw err;
         }
 
-        // Display the data
+        // Send the data to all clients
         results.keywords = keywords;
-        req.display_data = results;
-
-        routes.index(req, res);
+        io.sockets.emit('update', results);
     });
-});
+};
 
-app.listen(3000, function() {
-  console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-});
+// Connect to Twitter and our MongoDB
+async.parallel(
+    {
+        db: feature_exec('mongodb:connect', db.connect),
+        twitter: feature_exec('twitter:connect', twitter.connect)
+    },
+    function(err, results) {
+        if (err) {
+            throw err;
+        } else {
+            // Buffer for unsaved tweets
+            var tweets = [];
+
+            // Start listening on the Twitter sandbox stream
+            feature_exec('twitter:stream', function() {
+                twitter.stream(keywords, function(err, tweet) {
+                    if (err) {
+                        console.log('TWITTER STREAM ERROR: ' + err);
+                        throw err;
+                    }
+                    tweets.push(tweet);
+                });
+            })();
+
+            // Save incoming tweets to the database
+            feature_exec('mongodb:save_tweets', function() {
+                setInterval(function() {
+                    // Copy and clear the bufferr
+                    var tweets_copy = tweets;
+                    tweets = [];
+                    var start = Date.now();
+
+                    // Save the tweets to the database
+                    async.each(
+                        tweets_copy,
+                        function(tweet, callback) {
+                           db.save_tweet(tweet, callback);
+                        }, function(err) {
+                            if (err) {
+                                console.log('MONGODB SAVE ERROR: ' + err);
+                                throw err;
+                            }
+                            var end = Date.now();
+                            console.log('Flushed ' + tweets_copy.length + ' to database after ' + (end - start) + ' milliseconds');
+                        }
+                    );
+                }, nconf.get('flush_tweets:every'));
+            })();
+
+            // After a few seconds, start collating statistics
+            feature_exec('mongodb:mapreduce', function() {
+                var run_mapreduce = function() {
+                    db.mapreduce(function(err, results) {
+                        if (err) {
+                            throw err;
+                        }
+                        broadcast_update();
+                        setTimeout(run_mapreduce, nconf.get('mapreduce:every'));
+                    });
+                };
+                console.log('Timer set for map/reduce');
+                setTimeout(run_mapreduce, nconf.get('mapreduce:every'));
+            })();
+        }
+    }
+);
 
 }());
 

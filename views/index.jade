@@ -1,62 +1,42 @@
 h1 Tweets with&nbsp;
-  each word in keywords
-    q= word
-    |&nbsp;
+  span#keywords
 
-- var tps = total_tweets.value.count / (total_tweets.value.extra.end.getTime() - total_tweets.value.extra.start.getTime()) * 1000.0;
-p #{total_tweets.value.count} tweets from #{total_users} users, between #{total_tweets.value.extra.start} and #{total_tweets.value.extra.end}. That's an average of 
-  - if (tps > 1.0) {
-  | #{tps.toFixed(3)}
-  | tweets per second.
-  - } else if (tps * 60.0 > 1.0) {
-  | #{(tps*60.0).toFixed(3)}
-  | tweets per minute.
-  - } else {
-  | #{(tps*3600.0).toFixed(3)}
-  | tweets per hour.
-  - }
+p 
+  span#total_tweets_count
+  |  tweets from 
+  span#total_users
+  |  users, between 
+  span#total_tweets_start
+  |  and 
+  span#total_tweets_end
+  | . That's an average of 
+  span#tps_count
+  |  tweets per 
+  span#tps_unit
+  | .
 
-h2 Top Tweeters
-div
-  div.list
-    ol
-      each tweeter in top_tweeters
-        li
-          a(href='http://twitter.com/#{tweeter.value.extra.screen_name}', rel='nofollow')= '@' + tweeter.value.extra.screen_name
-          | &nbsp;(#{tweeter.value.count})
-  div#top_tweeters_chart.chart
-  div.clearfix
+div.chart
+  h2 Top Tweeters
+  div#top_tweeters_chart
 
-h2 Most Popular Users
-div
-  div.list
-    ol
-      each tweeter in top_mentions
-        li
-          a(href='http://twitter.com/' + tweeter.value.extra.screen_name, rel='nofollow')= '@' + tweeter.value.extra.screen_name
-          | &nbsp;(#{tweeter.value.count})
-  div#top_mentions_chart.chart
-  div.clearfix
+div.chart
+  h2 Most Popular Users
+  div#top_mentions_chart
+div.clearfix
 
-h2 Top Hashtags
-div
-  div.list
-    ol
-      each hashtag in top_hashtags
-        li
-          a(href='http://twitter.com/search?q=' + hashtag.value.extra.hashtag, rel='nofollow')= hashtag.value.extra.hashtag
-          | &nbsp;(#{hashtag.value.count})
-  div#top_hashtags_chart.chart
-  div.clearfix
+div.chart
+  h2 Top Hashtags
+  div#top_hashtags_chart
 
-h2 Top Links
-div
-  div.list
-    ol
-      each link in top_urls
-        li
-          a(href=link.value.extra.url, rel='nofollow')= link.value.extra.display
-          | &nbsp;(#{link.value.count})
-  div#top_links_chart.chart
-  div.clearfix
+div.chart
+  h2 Top Links
+  div#top_links_chart
+div.clearfix
 
+p There are currently 
+  span#client_count
+  |  people viewing this page. Maximum was 
+  span#client_max
+  |  on 
+  span#client_max_timestamp
+  | .

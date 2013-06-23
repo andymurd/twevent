@@ -11,10 +11,13 @@ a {
     clear: both;
 }
 
-.list, .chart {
+.chart, .list {
     float: left;
-    width: 400px;
-    height: 320px;
+}
+
+.chart > div {
+    width: 440px;
+    height: 360px;
 }
 
 .chart .axis path, .chart .axis line {
@@ -24,8 +27,12 @@ a {
 }
 
 .chart .bar {
-    fill: steelblue;
+    fill: gray;
     shape-rendering: crispEdges;
+}
+
+.chart .bar.insert {
+    fill: steelblue;
 }
 
 .chart .notation {
@@ -37,5 +44,6 @@ a {
     fill: #00B7FF;
     text-decoration: underline;
     cursor: pointer;
+    shape-rendering: crispEdges;
 }
 
