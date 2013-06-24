@@ -34,6 +34,13 @@ socket.on('update', function (data) {
     $(document).trigger('total_tweets', [ data.total_tweets ]);
     $(document).trigger('total_users', [ data.total_users ]);
 });
+socket.on('clients', function (data) {
+    console.log('Update client count');
+
+    $('#client_count').text(data.count);
+    $('#client_max').text(data.max);
+    $('#client_max_timestamp').text(new Date(data.max_timestamp).toLocaleString());
+});
 
 $(document).on('keywords', function(emitter, keywords) {
     var html = '';
@@ -56,8 +63,8 @@ $(document).on('total_users', function(emitter, total_users) {
  
 $(document).on('total_tweets', function(emitter, total_tweets) {
     $('#total_tweets_count').text(total_tweets.value.count);
-    $('#total_tweets_start').text(total_tweets.value.extra.start);
-    $('#total_tweets_end').text(total_tweets.value.extra.end);
+    $('#total_tweets_start').text(new Date(total_tweets.value.extra.start).toLocaleString());
+    $('#total_tweets_end').text(new Date(total_tweets.value.extra.end).toLocaleString());
 
     var secs = (Date.parse(total_tweets.value.extra.end) - 
                 Date.parse(total_tweets.value.extra.start)) / 1000;

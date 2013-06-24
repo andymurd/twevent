@@ -25,6 +25,11 @@ var routes   = require('./routes');
 var twitter  = require('./server/twitter')(nconf);
 var db       = require('./server/mongodb')(nconf);
 var models;
+var clients  = {
+    count: 0,
+    max:   0,
+    max_timestamp: new Date()
+};
 
 /**
  * Wrap the supplied functionality in a check to see if the feature has been enabled
@@ -82,9 +87,16 @@ var io = socketio.listen(app.listen(3000, function() {
 
 io.sockets.on('connection', function (socket) {
     console.log('New client connection');
+    if (++clients.count > clients.max) {
+       clients.max = clients.count;
+       clients.max_timestamp = new Date();
+    }
+    io.sockets.emit('clients', clients);
 
     socket.on('disconnect', function () {
         console.log('Client disconnect');
+        clients.count--;
+        io.sockets.emit('clients', clients);
     });
 });
 
