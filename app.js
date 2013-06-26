@@ -87,7 +87,9 @@ var io = socketio.listen(app.listen(3000, function() {
 
 io.sockets.on('connection', function (socket) {
     console.log('New client connection');
-    if (++clients.count > clients.max) {
+
+    clients.count += 1;
+    if (clients.count > clients.max) {
        clients.max = clients.count;
        clients.max_timestamp = new Date();
     }
@@ -95,7 +97,8 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('disconnect', function () {
         console.log('Client disconnect');
-        clients.count--;
+
+        clients.count -= 1;
         io.sockets.emit('clients', clients);
     });
 });

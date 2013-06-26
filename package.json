@@ -2,6 +2,14 @@
     "name": "infograftwit"
   , "version": "0.0.1"
   , "private": true
+  , "scripts": {
+      "test": "make test",
+      "run": "make run"
+    }
+  , "repository": {
+      "type": "git"
+    , "url": "https://github.com/andymurd/twevent.git"
+  }
   , "dependencies": {
       "express": "2.5.11"
     , "jade": ">= 0.0.1"
@@ -10,5 +18,10 @@
     , "async": ">= 0.0.1"
     , "mongoose": ">= 0.0.1"
     , "socket.io": ">= 0.0.1"
+  }
+  , "devDependencies": {
+      "jshint": ">= 0.0.1"
+    , "uglify-js": ">= 0.0.1"
+    , "recess": ">= 0.0.1"
   }
 }

@@ -1,42 +1,47 @@
 h1 Tweets with&nbsp;
   span#keywords
 
-p 
-  span#total_tweets_count
-  |  tweets from 
-  span#total_users
-  |  users, between 
-  span#total_tweets_start
-  |  and 
-  span#total_tweets_end
-  | . That's an average of 
-  span#tps_count
-  |  tweets per 
-  span#tps_unit
-  | .
+div.row-fluid
+  div.span10.offset1
+    p 
+      span#total_tweets_count
+      |  tweets from 
+      span#total_users
+      |  users, between 
+      span#total_tweets_start
+      |  and 
+      span#total_tweets_end
+      | . That's an average of 
+      span#tps_count
+      |  tweets per 
+      span#tps_unit
+      | .
 
-div.chart
-  h2 Top Tweeters
-  div#top_tweeters_chart
+div.row-fluid
+  div.chart.span6
+    h2 Top Tweeters
+    div#top_tweeters_chart
 
-div.chart
-  h2 Most Popular Users
-  div#top_mentions_chart
-div.clearfix
+  div.chart.span6
+    h2 Most Popular Users
+    div#top_mentions_chart
 
-div.chart
-  h2 Top Hashtags
-  div#top_hashtags_chart
+div.row-fluid
+  div.chart.span6
+    h2 Top Hashtags
+    div#top_hashtags_chart
 
-div.chart
-  h2 Top Links
-  div#top_links_chart
-div.clearfix
+  div.chart.span6
+    h2 Top Links
+    div#top_links_chart
 
-p There are currently 
-  span#client_count
-  |  people viewing this page. Maximum was 
-  span#client_max
-  |  on 
-  span#client_max_timestamp
-  | .
+div.row-fluid
+  div.span10.offset1
+    p There are currently 
+      span#client_count
+      |  people viewing this page. Maximum was 
+      span#client_max
+      |  on 
+      span#client_max_timestamp
+      | .
+

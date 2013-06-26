@@ -1,4 +1,5 @@
 (function() {
+"use strict";
 
 var htmlEncode = function(value) {
     return $('<div>').text(value).html();
@@ -47,7 +48,7 @@ $(document).on('keywords', function(emitter, keywords) {
     for(var i = 0; i < keywords.length; i += 1) {
         html += '<q>' + htmlEncode(keywords[i]) + '</q>';
 
-        if (i == keywords.length - 2) {
+        if (i === keywords.length - 2) {
             html += ' &amp; ';
         }
         if (i < keywords.length - 2) {
@@ -66,7 +67,7 @@ $(document).on('total_tweets', function(emitter, total_tweets) {
     $('#total_tweets_start').text(new Date(total_tweets.value.extra.start).toLocaleString());
     $('#total_tweets_end').text(new Date(total_tweets.value.extra.end).toLocaleString());
 
-    var secs = (Date.parse(total_tweets.value.extra.end) - 
+    var secs = (Date.parse(total_tweets.value.extra.end) -
                 Date.parse(total_tweets.value.extra.start)) / 1000;
     var tps = total_tweets.value.count / secs;
     var tps_unit;
@@ -165,9 +166,9 @@ var graph = function(element_id, data, xaxis, yaxis) {
         width: element.width(),
         height: element.height(),
         margin: {
-            top: 0, 
-            right: 20, 
-            bottom: 30, 
+            top: 0,
+            right: 20,
+            bottom: 30,
             left: 130
         }
     };
@@ -182,7 +183,7 @@ var graph = function(element_id, data, xaxis, yaxis) {
 
     var y = d3.scale.ordinal()
         .domain(data.map(yaxis.gety))
-        .rangeRoundBands([0, height], .1);
+        .rangeRoundBands([0, height], 0.1);
 
     var xAxis = d3.svg.axis()
         .scale(x)
@@ -216,7 +217,7 @@ var graph = function(element_id, data, xaxis, yaxis) {
         console.log('Update graph ' + element_id);
 
         svg = d3.select(element_id).select('g');
-    }        
+    }
     
     var delay = function(d, i) { return i * 50; };
     var rect = svg.selectAll('rect').data(data, yaxis.gety);
@@ -273,7 +274,7 @@ console.log(d);
                window.location = yaxis.url(d);
            }
        });
-}; 
+};
  
 }());
 
