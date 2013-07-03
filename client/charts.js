@@ -27,6 +27,13 @@ var get_display_url = function(d) {
 
 var socket = io.connect('http://localhost:3000');
 socket.on('update', function (data) {
+    // First update?
+    if ($('#loading').is(':visible')) {
+        $('#loading').hide();
+        $('.hidden.row-fluid').removeClass('hidden');
+    }
+
+    // Update all the graphs
     $(document).trigger('keywords', [ data.keywords ]);
     $(document).trigger('top_hashtags', [ data.top_hashtags ]);
     $(document).trigger('top_mentions', [ data.top_mentions ]);
@@ -44,7 +51,7 @@ socket.on('clients', function (data) {
 });
 
 $(document).on('keywords', function(emitter, keywords) {
-    var html = '';
+    var html = 'Tweets with ';
     for(var i = 0; i < keywords.length; i += 1) {
         html += '<q>' + htmlEncode(keywords[i]) + '</q>';
 
@@ -55,7 +62,7 @@ $(document).on('keywords', function(emitter, keywords) {
             html += ', ';
         }
     }
-    $('#keywords').html(html);
+    $('.page-header h1').html(html);
 });
  
 $(document).on('total_users', function(emitter, total_users) {
@@ -103,7 +110,7 @@ $(document).on('top_tweeters', function(emitter, top_tweeters) {
         }
     };
 
-    graph('#top_tweeters_chart', top_tweeters, xaxis, yaxis);
+    graph('#top_tweeters > div', top_tweeters, xaxis, yaxis);
 });
 
 $(document).on('top_mentions', function(emitter, top_mentions) {
@@ -121,7 +128,7 @@ $(document).on('top_mentions', function(emitter, top_mentions) {
         }
     };
 
-    graph('#top_mentions_chart', top_mentions, xaxis, yaxis);
+    graph('#top_mentions > div', top_mentions, xaxis, yaxis);
 });
  
 $(document).on('top_hashtags', function(emitter, top_hashtags) {
@@ -139,7 +146,7 @@ $(document).on('top_hashtags', function(emitter, top_hashtags) {
         }
     };
 
-    graph('#top_hashtags_chart', top_hashtags, xaxis, yaxis);
+    graph('#top_hashtags > div', top_hashtags, xaxis, yaxis);
 });
  
 $(document).on('top_links', function(emitter, top_urls) {
@@ -148,14 +155,14 @@ $(document).on('top_links', function(emitter, top_urls) {
     };
     
     var yaxis = {
-        gety: get_display_url,
+        gety: get_url,
         url: get_url,
-        text: function(d) {
-            return d;
+        text: function(d, a) {
+            return get_display_url(top_urls[a]);
         }
     };
 
-    graph('#top_links_chart', top_urls, xaxis, yaxis);
+    graph('#top_links > div', top_urls, xaxis, yaxis);
 });
  
 var graph = function(element_id, data, xaxis, yaxis) {
@@ -187,6 +194,7 @@ var graph = function(element_id, data, xaxis, yaxis) {
 
     var xAxis = d3.svg.axis()
         .scale(x)
+        .ticks(5)
         .orient('bottom');
 
     var yAxis = d3.svg.axis()
@@ -253,7 +261,16 @@ var graph = function(element_id, data, xaxis, yaxis) {
     // Text Updates
     text.text(xaxis.getx)
         .attr('x', function(d) { return x(xaxis.getx(d)); })
-        .attr('dx', function() { return 0 - this.getComputedTextLength(); })
+        .attr('dx', function(d) {
+             var len = this.getComputedTextLength();
+
+             // Will the notation fit inside the bar?
+             if (len > x(xaxis.getx(d))) {
+                 return 8;
+             } else {
+                 return 0 - len;
+             }
+         })
         .attr('width', function(d) { return x(xaxis.getx(d)); })
         .attr('text-anchor', 'right')
         .attr('height', y.rangeBand())
@@ -269,10 +286,7 @@ var graph = function(element_id, data, xaxis, yaxis) {
     yax.call(yAxis)
        .selectAll('text')
        .on('click', function(d) {
-           if (yaxis.url) {
-console.log(d);
-               window.location = yaxis.url(d);
-           }
+           window.location = d;
        });
 };
  

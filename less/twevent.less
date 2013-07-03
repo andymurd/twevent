@@ -1,12 +1,34 @@
+@bodyBackground:        @grayDarker;
+@textColor:             @white;
+
+@graphBlue: darken(#55A7DF, 10%);
+@graphPurple: #770573;
+@graphGreen: darken(#BED73E, 10%);
+@graphPink: darken(#EE265F, 10%);
+
 .chart {
+    .border-radius(@borderRadiusLarge);
+    .box-shadow(0px 2px 4px @black);
+    #gradient > .vertical(@grayDarker, @grayDark);
+
+    margin-bottom: 28px;
+
+    h2 {
+        @textShadow(0 -1px 0 rgba(0,0,0,.25));
+
+        margin-top: 0;
+        text-align: center;
+    }
+
     div {
         height: 280px;
+        margin: 0 14px;
     }
 
     .axis {
         path, line {
             fill: none;
-            stroke: #000;
+            stroke: @textColor;
             shape-rendering: crispEdges;
         }
     }
@@ -21,16 +43,49 @@
     }
 
     .notation {
-        fill: white;
+        fill: @textColor;
+    }
+
+    .x {
+        text {
+            fill: @textColor;
+        }
     }
 
     .y {
         text {
             font-size: 14px;
-            fill: #00B7FF;
+            fill: @linkColor;
             text-decoration: underline;
             cursor: pointer;
             shape-rendering: crispEdges;
         }
     }
 }
+
+.color-chart(@chartColor) {
+    .bar {
+        fill: @chartColor;
+    }
+
+    .bar.insert {
+        fill: lighten(@chartColor, 2%);
+    }
+}
+
+#top_mentions {
+    .color-chart(@graphPurple);
+}
+
+#top_hashtags {
+    .color-chart(@graphGreen);
+}
+
+#top_links {
+    .color-chart(@graphPink);
+}
+
+#top_tweeters {
+    .color-chart(@graphBlue);
+}
+
