@@ -1,24 +1,27 @@
 div#loading.row-fluid
-  p.span10.offset1.loading Loading, please wait...
+  p.span10.offset1.loading 
+    i.icon-refresh.icon-spin 
+    | Loading, please wait...
 
 div.row-fluid.hidden
   h2#keywords.span12
 
 div.row-fluid.hidden
-  p.span8.offset4
-    span.big
+  p.span9
+    i.icon-twitter.pull-left
+    span#total_tweets.big
       span#total_tweets_count
       |  tweets
     |  from 
-    span.big
-      span#total_users
+    span#total_users.big
+      span#total_users_count
       |  users
     | , between 
     span#total_tweets_start
     |  and 
     span#total_tweets_end
     | . That's an average of 
-    span.big
+    span#tps.big
       span#tps_count
       |  tweets per 
       span#tps_unit
@@ -43,11 +46,15 @@ div.row-fluid.hidden
     div
 
 div.row-fluid
-  p.span10.offset1 There are currently 
+  div.span1
+    a.twitter-share-button(href='https://twitter.com/share', data-lang='en', data-url='http://twevent.com', data-text='Realtime Twitter analytics', data-related='andymurd: Twevent.com author') Tweet
+  div.span9.offset2 There are currently 
     span#client_count 1
     |  people viewing this page. Maximum was 
     span#client_max 1
     |  on 
     span#client_max_timestamp now
     | .
+script
+  !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
 

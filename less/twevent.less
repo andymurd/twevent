@@ -6,15 +6,40 @@
 @graphGreen: darken(#BED73E, 10%);
 @graphPink: darken(#EE265F, 10%);
 
+@FontAwesomePath:   "../fonts";
+
+h1 {
+    a, a:hover {
+        text-decoration: none;
+        color: @textColor;
+    }
+}
+
 .big {
     font-size: 300%;
     line-height: 100%;
+}
+#total_tweets {
+    color: @graphPink;
+}
+#total_users {
+    color: @graphGreen;
+}
+#tps {
+    color: @graphPurple;
+}
+
+.icon-twitter.pull-left {
+    color: @graphBlue;
+    font-size: 12em;
+    line-height: 0.8em;
+    margin-right: 2px;
 }
 
 .chart {
     .border-radius(@borderRadiusLarge);
     .box-shadow(0px 2px 4px @black);
-    #gradient > .vertical(@grayDarker, @grayDark);
+    #gradient > .vertical(@grayDark, @grayDarker);
 
     margin-bottom: 28px;
 

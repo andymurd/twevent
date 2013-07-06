@@ -1,3 +1,6 @@
 [submodule "third_party/twitter/bootstrap"]
 	path = third_party/twitter/bootstrap
 	url = https://github.com/twitter/bootstrap.git
+[submodule "third_party/fortawesome/fontawesome"]
+	path = third_party/fortawesome/fontawesome
+	url = https://github.com/FortAwesome/Font-Awesome.git

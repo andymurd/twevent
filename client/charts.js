@@ -66,7 +66,7 @@ $(document).on('keywords', function(emitter, keywords) {
 });
  
 $(document).on('total_users', function(emitter, total_users) {
-    $('#total_users').text(total_users);
+    $('#total_users_count').text(total_users);
 });
  
 $(document).on('total_tweets', function(emitter, total_tweets) {

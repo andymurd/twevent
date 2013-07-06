@@ -25,6 +25,7 @@ var routes   = require('./routes');
 var twitter  = require('./server/twitter')(nconf);
 var db       = require('./server/mongodb')(nconf);
 var models;
+var last_update;
 var clients  = {
     count: 0,
     max:   0,
@@ -80,29 +81,46 @@ app.configure('production', function() {
 app.get('/', function(req, res) {
     routes.index(req, res);
 });
+app.get('/admin', function(req, res) {
+    routes.admin_form(req, res);
+});
 
 var io = socketio.listen(app.listen(3000, function() {
   console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 }));
 
+// When a new client connects...
 io.sockets.on('connection', function (socket) {
     console.log('New client connection');
 
+    // Count the number of connected clients
     clients.count += 1;
     if (clients.count > clients.max) {
        clients.max = clients.count;
        clients.max_timestamp = new Date();
     }
+
+    // Tell ALL clients about the new connection
     io.sockets.emit('clients', clients);
 
+    // Send updates to the new client
+    if (last_update) {
+        socket.emit('update', last_update);
+    }
+
+    // When this client disconnects...
     socket.on('disconnect', function () {
         console.log('Client disconnect');
 
+        // Tell all remaining clients about the disconnection
         clients.count -= 1;
         io.sockets.emit('clients', clients);
     });
 });
 
+/**
+ * Read the results of the last mapreduce run and send them to all clients
+ */
 var broadcast_update = function() {
     // Find the data to display
     async.parallel({
@@ -131,7 +149,8 @@ var broadcast_update = function() {
 
         // Send the data to all clients
         results.keywords = keywords;
-        io.sockets.emit('update', results);
+        last_update = results;
+        io.sockets.emit('update', last_update);
     });
 };
 

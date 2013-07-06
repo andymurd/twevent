@@ -6,7 +6,11 @@ LESS_FILES=$(shell find ./less -name \*.less -print)
 
 all: build
 
-build: js css
+build: js css fonts
+
+fonts:
+	@echo "Copying fonts"
+	@cp third_party/fortawesome/fontawesome/font/* public/fonts
 
 css: $(LESS_FILES)
 	@echo "Making CSS"
