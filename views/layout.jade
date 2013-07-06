@@ -8,9 +8,12 @@ html
     script(src='/socket.io/socket.io.js')
     script(src='/javascripts/twevent.min.js')
   body
+    div#fork
+      div
+        a(href='https://github.com/andymurd/twevent', rel='me') Fork me on GitHub
     div.page-header
       div.container-fluid
-        h1 Twevent 
+        h1.span9 Twevent 
           small Realtime Twitter Analytics
 
     div.container-fluid!= body
