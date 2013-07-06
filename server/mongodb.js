@@ -153,6 +153,10 @@ module.exports = function (nconf) {
      * @return A hash of schemas
      */
     var schemas = function() {
+        // The "tweet" schema stores a buffer of tweets for analysis.
+        // This capped collection must be large enough to ensure that
+        // there is sufficient space to store all the tweets recorded
+        // between mapreduce runs
         var tweet = new Schema(
             {
                 id: {
@@ -176,6 +180,9 @@ module.exports = function (nconf) {
                 capped: 1024 * 1024 * nconf.get('mongodb.cap.tweet')
             }
         );
+
+        // The "mapreduce" schema stores the results of mapreduce
+        // runs.
         var mapreduce = new Schema(
             {
                 value: {
@@ -196,15 +203,71 @@ module.exports = function (nconf) {
                 capped: 1024 * 1024 * nconf.get('mongodb.cap.mapreduce')
             }
         );
-    
         mapreduce.index({
             'value.type': 1,
             'value.count': -1
         });
 
+        // The "config" schema stores configuration information.
+        var config = new Schema(
+            {
+                keywords: [
+                    {
+                        type: String,
+                        lowercase: true,
+                        trim: true,
+                        matches: /[#@]?[a-z0-9_\-]+/
+                    }
+                ],
+                features: Object
+            },
+            {
+                strict: true,
+                capped: 1024 * 1024 * nconf.get('mongodb.cap.config')
+            }
+        );
+
+        // The "results" schema stores the results of previous configurations.
+        var results = new Schema(
+            {
+                timestamp: {
+                    type: Date,
+                    required: true,
+                    index: true
+                },
+                keywords: {
+                    type: String,
+                    required: true,
+                    index: true
+                },
+                top_tweeters: {
+                    type: [mapreduce],
+                    required: true
+                },
+                top_mentions: {
+                    type: [mapreduce],
+                    required: true
+                },
+                top_hashtags: {
+                    type: [mapreduce],
+                    required: true
+                },
+                top_urls: {
+                    type: [mapreduce],
+                    required: true
+                }
+            },
+            {
+                strict: true,
+                capped: 1024 * 1024 * nconf.get('mongodb.cap.results')
+            }
+        );
+
         return {
             tweet: tweet,
-            mapreduce: mapreduce
+            mapreduce: mapreduce,
+            config: config,
+            results: results
         };
     };
 
@@ -219,22 +282,24 @@ module.exports = function (nconf) {
      * @return A hash of Mongoose models, one per input schema
      */
     var models = function(schemas) {
-        // Check for errors when creating indexes
-        schemas.tweet.on('index', function (err) {
-            if (err) {
-                console.error('INDEX CREATION ERROR on collection tweet: ' + err);
-            }
-        });
-        schemas.mapreduce.on('index', function (err) {
-            if (err) {
-                console.error('INDEX CREATION ERROR on collection mapreduce: ' + err);
-            }
-        });
+        // Create the schema
+        var create = function(name, schema) {
+            // Check for errors when creating indexes
+            schema.on('index', function (err) {
+                if (err) {
+                    console.error('INDEX CREATION ERROR on collection ' +
+                                  name + ': ' + err);
+                }
+            });
+            return mongoose.model(name, schema);
+        };
 
         // Create the models
         return {
-            tweet: mongoose.model('Tweet', schemas.tweet),
-            mapreduce: mongoose.model('mapreduces', schemas.mapreduce)
+            tweet: create('tweets', schemas.tweet),
+            mapreduce: create('mapreduces', schemas.mapreduce),
+            config: create('config', schemas.config),
+            results: create('results', schemas.results)
         };
     };
 
@@ -252,7 +317,6 @@ module.exports = function (nconf) {
     var initial_mapreduce = function(to, callback) {
         console.log('Initial Map/Reduce started');
     
-console.log('Before objectID ' + ObjectID.createFromTime(to.getTime()/1000).toString());
         models.tweet.mapReduce(
             {
                 map: mapper,
@@ -290,8 +354,6 @@ console.log('Before objectID ' + ObjectID.createFromTime(to.getTime()/1000).toSt
     var incremental_mapreduce = function(from, to, callback) {
         console.log('Incremental Map/Reduce started');
     
-console.log('After objectID ' + ObjectID.createFromTime(from.getTime()/1000).toString());
-console.log('Before objectID ' + ObjectID.createFromTime(to.getTime()/1000).toString());
         models.tweet.mapReduce(
             {
                 map: mapper,
@@ -317,7 +379,8 @@ console.log('Before objectID ' + ObjectID.createFromTime(to.getTime()/1000).toSt
 
     return {
         /**
-         * Connect to MongoDB with the credentials configured via nconf
+         * Connect to MongoDB with the credentials configured via the
+         * environmnt or nconf
          *
          * @name connect
          * @memberOf mongodb

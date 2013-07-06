@@ -28,10 +28,14 @@ module.exports = function (nconf) {
         connect: function(callback) {
             // Create the Twitter interface
             var credentials = {
-                consumer_key: nconf.get('twitter:consumer_key'),
-                consumer_secret: nconf.get('twitter:consumer_secret'),
-                access_token_key: nconf.get('twitter:access_token_key'),
-                access_token_secret: nconf.get('twitter:access_token_secret')
+                consumer_key: process.env.TWITTER_CONSUMER_KEY ||
+                              nconf.get('twitter:consumer_key'),
+                consumer_secret: process.env.TWITTER_CONSUMER_SECRET ||
+                              nconf.get('twitter:consumer_secret'),
+                access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY ||
+                              nconf.get('twitter:access_token_key'),
+                access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET ||
+                              nconf.get('twitter:access_token_secret')
             };
             twitter = new NTwitter(credentials);
 

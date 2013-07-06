@@ -62,7 +62,7 @@ $(document).on('keywords', function(emitter, keywords) {
             html += ', ';
         }
     }
-    $('.page-header h1').html(html);
+    $('#keywords').html(html);
 });
  
 $(document).on('total_users', function(emitter, total_users) {

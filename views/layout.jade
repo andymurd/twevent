@@ -7,4 +7,11 @@ html
     script(src='/javascripts/d3.v3.min.js')
     script(src='/socket.io/socket.io.js')
     script(src='/javascripts/twevent.min.js')
-  body!= body
+  body
+    div.page-header
+      div.container-fluid
+        h1 Twevent 
+          small Realtime Twitter Analytics
+
+    div.container-fluid!= body
+
