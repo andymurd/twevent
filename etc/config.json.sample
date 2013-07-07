@@ -12,6 +12,9 @@
             "mapreduce": 10
         }
     },
+    "express": {
+        "session_secret": "SECRET"
+    },
     "socketio": {
         "websockets": true
     },

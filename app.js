@@ -9,14 +9,6 @@ var socketio = require('socket.io');
 var nconf    = require('nconf');
 var async    = require('async');
 
-var keywords = [
-    'awesome',
-    'cool',
-    'rad',
-    'gnarly',
-    'groovy'
-];
-
 // Load the configuration
 nconf.argv().env().file({ 'file': __dirname + '/etc/config.json' });
 
@@ -24,6 +16,9 @@ nconf.argv().env().file({ 'file': __dirname + '/etc/config.json' });
 var routes   = require('./routes');
 var twitter  = require('./server/twitter')(nconf);
 var db       = require('./server/mongodb')(nconf);
+
+var keywords = nconf.get('keywords');
+console.log('Keywords are ' + keywords);
 var models;
 var last_update;
 var clients  = {
@@ -64,7 +59,7 @@ app.configure(function(){
     app.use(express.bodyParser());
     app.use(express.methodOverride());
     app.use(express.cookieParser());
-    app.use(express.session({ secret: 'your secret here' }));
+    //app.use(express.session({ secret: nconf.get('express:session_secret') }));
     app.use(app.router);
     app.use(express['static'](__dirname + '/public'));
 });
@@ -87,7 +82,7 @@ app.get('/admin', function(req, res) {
 
 // Start accepting client requests
 var io = socketio.listen(app.listen(3000, function() {
-  console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+    console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 }));
 
 // Heroku does not support websockets

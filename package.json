@@ -2,8 +2,14 @@
     "name": "infograftwit"
   , "version": "0.0.1"
   , "private": true
+  , "licenses": [
+       {
+         "type": "GPLv3"
+       , "url": "https://github.com/andymurd/twevent/blob/master/LICENSE.md"
+       }
+    ]
   , "scripts": {
-      "test": "make test",
+      "install": "make install",
       "run": "make run"
     }
   , "repository": {
@@ -11,17 +17,21 @@
     , "url": "https://github.com/andymurd/twevent.git"
   }
   , "dependencies": {
-      "express": "2.5.11"
-    , "jade": ">= 0.0.1"
-    , "ntwitter": ">= 0.0.1"
-    , "nconf": ">= 0.0.1"
-    , "async": ">= 0.0.1"
-    , "mongoose": ">= 0.0.1"
-    , "socket.io": ">= 0.0.1"
+      "express": "2.5.x"
+    , "jade": ">= 0.31.x"
+    , "ntwitter": ">= 0.5.x"
+    , "nconf": ">= 0.6.x"
+    , "async": ">= 0.2.x"
+    , "mongoose": ">= 3.6.x"
+    , "socket.io": ">= 0.9.x"
   }
   , "devDependencies": {
       "jshint": ">= 0.0.1"
     , "uglify-js": ">= 0.0.1"
     , "recess": ">= 0.0.1"
+  }
+  , "engines": {
+      "node": "0.10.x"
+    , "npm":  "1.2.x"
   }
 }

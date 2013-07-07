@@ -8,6 +8,8 @@ all: build
 
 build: js css fonts
 
+install: bootstrap build
+
 run: build
 	node app.js
 
