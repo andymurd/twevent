@@ -85,9 +85,25 @@ app.get('/admin', function(req, res) {
     routes.admin_form(req, res);
 });
 
+// Start accepting client requests
 var io = socketio.listen(app.listen(3000, function() {
   console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 }));
+
+// Heroku does not support websockets
+if (nconf.get('socketio:websockets') === false) {
+    console.log('WARNING: Websockets disabled');
+    io.configure(function () {
+        io.set("transports", ["xhr-polling"]);
+        io.set("polling duration", 10);
+    });
+}
+io.configure('production', function() {
+    io.enable('browser client minification');  // Send minified client
+    io.enable('browser client etag');          // Apply etag caching logic
+    io.enable('browser client gzip');          // Gzip the file
+    io.set('log level', 1);                    // Reduce logging
+});
 
 // When a new client connects...
 io.sockets.on('connection', function (socket) {

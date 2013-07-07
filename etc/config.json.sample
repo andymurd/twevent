@@ -12,6 +12,9 @@
             "mapreduce": 10
         }
     },
+    "socketio": {
+        "websockets": true
+    },
     "mapreduce": {
         "every": 60000
     },

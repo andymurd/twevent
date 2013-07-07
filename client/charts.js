@@ -25,7 +25,8 @@ var get_display_url = function(d) {
     return d.value.extra.display;
 };
 
-var socket = io.connect('http://localhost:3000');
+// FIXME
+var socket = io.connect('http://localhost:3000', {'sync disconnect on unload' : true});
 socket.on('update', function (data) {
     // First update?
     if ($('#loading').is(':visible')) {

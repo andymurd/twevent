@@ -8,9 +8,13 @@ all: build
 
 build: js css fonts
 
+run: build
+	node app.js
+
 fonts:
 	@echo "Copying fonts"
-	@cp third_party/fortawesome/fontawesome/font/* public/fonts
+	@mkdir -p public/fonts
+	@cp third_party/fortawesome/fontawesome/font/*webfont* public/fonts
 
 css: $(LESS_FILES)
 	@echo "Making CSS"
