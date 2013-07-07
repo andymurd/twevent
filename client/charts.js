@@ -30,17 +30,29 @@ socket.on('update', function (data) {
     // First update?
     if ($('#loading').is(':visible')) {
         $('#loading').hide();
-        $('.hidden.row-fluid').removeClass('hidden');
     }
 
-    // Update all the graphs
+    // Always show the keywords
     $(document).trigger('keywords', [ data.keywords ]);
-    $(document).trigger('top_hashtags', [ data.top_hashtags ]);
-    $(document).trigger('top_mentions', [ data.top_mentions ]);
-    $(document).trigger('top_tweeters', [ data.top_tweeters ]);
-    $(document).trigger('top_links', [ data.top_urls ]);
-    $(document).trigger('total_tweets', [ data.total_tweets ]);
-    $(document).trigger('total_users', [ data.total_users ]);
+
+    // Has the server found any tweets?
+    if (data.total_tweets) {
+        // Show the graphs
+        $('.no-data-available.row-fluid').addClass('hidden');
+        $('.data-available.row-fluid').removeClass('hidden');
+
+        // Update all the graphs
+        $(document).trigger('top_hashtags', [ data.top_hashtags ]);
+        $(document).trigger('top_mentions', [ data.top_mentions ]);
+        $(document).trigger('top_tweeters', [ data.top_tweeters ]);
+        $(document).trigger('top_links', [ data.top_urls ]);
+        $(document).trigger('total_tweets', [ data.total_tweets ]);
+        $(document).trigger('total_users', [ data.total_users ]);
+    } else {
+        // Hide the tweets
+        $('.data-available.row-fluid').addClass('hidden');
+        $('.no-data-available.row-fluid').removeClass('hidden');
+    }
 });
 socket.on('clients', function (data) {
     console.log('Update client count');

@@ -1,12 +1,17 @@
 div#loading.row-fluid
   p.span10.offset1.loading 
-    i.icon-refresh.icon-spin 
-    | Loading, please wait...
+    i.icon-refresh.icon-spin
+    |  Loading, please wait...
 
-div.row-fluid.hidden
+div.row-fluid.hidden.data-available.no-data-available
   h2#keywords.span12
 
-div.row-fluid.hidden
+div.row-fluid.hidden.no-data-available
+  p.span9
+    i.icon-twitter.pull-left
+    span.big Sorry. There are no tweets available.
+
+div.row-fluid.hidden.data-available
   p.span9
     i.icon-twitter.pull-left
     span#total_tweets.big
@@ -27,7 +32,7 @@ div.row-fluid.hidden
       span#tps_unit
     | .
 
-div.row-fluid.hidden
+div.row-fluid.hidden.data-available
   div#top_tweeters.chart.span6
     h2 Top Tweeters
     div
@@ -36,7 +41,7 @@ div.row-fluid.hidden
     h2 Most Popular Users
     div
 
-div.row-fluid.hidden
+div.row-fluid.hidden.data-available
   div#top_hashtags.chart.span6
     h2 Top Hashtags
     div
