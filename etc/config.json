@@ -1,0 +1,48 @@
+{
+    "keywords": [
+        "awesome",
+        "cool",
+        "rad",
+        "gnarly",
+        "groovy"
+    ],
+    "twitter": {
+        "consumer_key": "SECRET",
+        "consumer_secret": "SECRET",
+        "access_token_key": "SECRET",
+        "access_token_secret": "SECRET"
+    },
+    "mongodb": {
+        "connection": "mongodb://SECRET",
+        "cap": {
+            "tweet": 450,
+            "mapreduce": 10,
+            "config": 1,
+            "results": 10
+        }
+    },
+    "express": {
+        "session_secret": "SECRET"
+    },
+    "socketio": {
+        "websockets": false
+    },
+    "mapreduce": {
+        "every": 30000
+    },
+    "flush_tweets": {
+        "every": 5000
+    },
+    "features": {
+        "twitter": {
+            "connect": true,
+            "stream": true
+        },
+        "mongodb": {
+            "connect": true,
+            "save_tweets": true,
+            "mapreduce": true
+        }
+    }
+}
+

@@ -1,5 +1,4 @@
 node_modules
-etc/config.json
 public/javascripts/twevent.min.js
 public/stylesheets/style.min.css
 public/fonts/*
