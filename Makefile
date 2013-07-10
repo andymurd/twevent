@@ -18,11 +18,13 @@ fonts:
 	@mkdir -p public/fonts
 	@cp third_party/fortawesome/fontawesome/font/*webfont* public/fonts
 
-css: $(LESS_FILES)
+public/stylesheets/style.min.css: $(LESS_FILES)
 	@echo "Making CSS"
 	@node_modules/recess/bin/recess --compress less/style.less > public/stylesheets/style.min.css
 
-js: js-static-analysis
+css: public/stylesheets/style.min.css
+
+public/javascripts/twevent.min.js: js-static-analysis
 	@echo "Compressing JavaScript"
 	@uglifyjs $(CLIENT_JS_FILES) > public/javascripts/twevent.min.js
 
@@ -30,6 +32,8 @@ js-static-analysis: $(SERVER_JS_FILES) $(CLIENT_JS_FILES)
 	@echo "Analysing JavaScript"
 	@jshint --config .jshintrc-server $(SERVER_JS_FILES)
 	@jshint --config .jshintrc-client $(CLIENT_JS_FILES)
+
+js: public/javascripts/twevent.min.js
 
 bootstrap:
 	cd third_party/twitter/bootstrap && npm install
