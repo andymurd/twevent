@@ -32,5 +32,6 @@ js-static-analysis: $(SERVER_JS_FILES) $(CLIENT_JS_FILES)
 	@jshint --config .jshintrc-client $(CLIENT_JS_FILES)
 
 bootstrap:
+	cd third_party/twitter/bootstrap && npm install
 	@make -C third_party/twitter/bootstrap
 
