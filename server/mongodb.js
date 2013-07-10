@@ -457,6 +457,9 @@ module.exports = function (nconf) {
          * @public
          */
         save_tweet: function(tweet, callback) {
+if (!tweet.id) {
+console.log(tweet);
+}
             var data = new models.tweet(tweet);
             data.save(function(err, result) {
                 if (err && err.code === 11000) {
