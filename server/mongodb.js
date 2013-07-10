@@ -457,9 +457,6 @@ module.exports = function (nconf) {
          * @public
          */
         save_tweet: function(tweet, callback) {
-if (!tweet.id) {
-console.log(tweet);
-}
             var data = new models.tweet(tweet);
             data.save(function(err, result) {
                 if (err && err.code === 11000) {
@@ -467,6 +464,9 @@ console.log(tweet);
                     err = undefined;
                     console.log('Duplicate key');
                 }
+else if (err) {
+console.log('ERROR ' + err.code + ': ' + tweet);
+}
                 if (result) {
                     last_tweet = result._id;
                 }
