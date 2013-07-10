@@ -24,6 +24,7 @@
     , "async": ">= 0.2.x"
     , "mongoose": ">= 3.6.x"
     , "socket.io": ">= 0.9.x"
+    , "recess": "1.1.8"
   }
   , "devDependencies": {
       "jshint": ">= 0.0.1"

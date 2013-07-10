@@ -8,7 +8,7 @@ all: build
 
 build: js css fonts
 
-install: bootstrap build
+install: build
 
 run: build
 	node app.js
@@ -20,7 +20,7 @@ fonts:
 
 css: $(LESS_FILES)
 	@echo "Making CSS"
-	@./third_party/twitter/bootstrap/node_modules/recess/bin/recess --compress less/style.less > public/stylesheets/style.min.css
+	@node_modules/recess/bin/recess --compress less/style.less > public/stylesheets/style.min.css
 
 js: js-static-analysis
 	@echo "Compressing JavaScript"
