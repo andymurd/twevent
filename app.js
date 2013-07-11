@@ -83,7 +83,8 @@ app.get('/admin', function(req, res) {
 });
 
 // Start accepting client requests
-var io = socketio.listen(app.listen(3000, function() {
+var port = process.env('PORT') || nconf.get('express:port') || 3000;
+var io = socketio.listen(app.listen(port, function() {
     console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 }));
 

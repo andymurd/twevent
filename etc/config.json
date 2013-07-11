@@ -22,6 +22,7 @@
         }
     },
     "express": {
+        "port": 3000,
         "session_secret": "SECRET"
     },
     "socketio": {
