@@ -298,7 +298,7 @@ var graph = function(element_id, data, xaxis, yaxis) {
     yax.call(yAxis)
        .selectAll('text')
        .on('click', function(d) {
-           window.location = d;
+           window.location = yaxis.url(d);
        });
 };
  

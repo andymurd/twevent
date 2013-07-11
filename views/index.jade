@@ -7,12 +7,12 @@ div.row-fluid.hidden.data-available.no-data-available
   h2#keywords.span12
 
 div.row-fluid.hidden.no-data-available
-  p.span9
+  p.span9.offset1
     i.icon-twitter.pull-left
     span.big Sorry. There are no tweets available.
 
 div.row-fluid.hidden.data-available
-  p.span9
+  p.span9.offset1
     i.icon-twitter.pull-left
     span#total_tweets.big
       span#total_tweets_count
@@ -53,13 +53,16 @@ div.row-fluid.hidden.data-available
 div.row-fluid
   div.span1
     a.twitter-share-button(href='https://twitter.com/share', data-lang='en', data-url='http://twevent.com', data-text='Realtime Twitter analytics', data-related='andymurd: Twevent.com author') Tweet
-  div.span9.offset2 There are currently 
+  div.span8.offset1 There are currently 
     span#client_count 1
     |  people viewing this page. Maximum was 
     span#client_max 1
     |  on 
     span#client_max_timestamp now
     | .
+  div.span1.offset1 By
+    a(href='http://twitter.com/andymurd', rel='me') @andymurd
+
 script.
   !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="https://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
 
