@@ -464,9 +464,6 @@ module.exports = function (nconf) {
                     err = undefined;
                     console.log('Duplicate key');
                 }
-else if (err) {
-console.log('ERROR ' + err.code + ': ' + tweet);
-}
                 if (result) {
                     last_tweet = result._id;
                 }

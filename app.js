@@ -77,6 +77,8 @@ app.get('/', function(req, res) {
     routes.index(req, res);
 });
 app.get('/admin', function(req, res) {
+    res.keywords = keywords;
+    res.features = nconf.get('features');
     routes.admin_form(req, res);
 });
 
@@ -201,7 +203,11 @@ async.parallel(
                     async.each(
                         tweets_copy,
                         function(tweet, callback) {
-                           db.save_tweet(tweet, callback);
+                           if (tweet.id) {
+                               db.save_tweet(tweet, callback);
+                           } else {
+                               console.log('Non-tweet message: ' + JSON.stringify(tweet));
+                           }
                         }, function(err) {
                             if (err) {
                                 console.log('MONGODB SAVE ERROR: ' + err);
