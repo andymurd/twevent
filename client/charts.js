@@ -115,7 +115,7 @@ $(document).on('top_tweeters', function(emitter, top_tweeters) {
     var yaxis = {
         gety: get_screen_name,
         url: function(d) {
-            return 'http://twitter.com/' + d;
+            return 'http://twitter.com/' + encodeURIComponent(d);
         },
         text: function(d) {
             return '@' + d;
@@ -133,7 +133,7 @@ $(document).on('top_mentions', function(emitter, top_mentions) {
     var yaxis = {
         gety: get_screen_name,
         url: function(d) {
-            return 'http://twitter.com/' + d;
+            return 'http://twitter.com/' + encodeURIComponent(d);
         },
         text: function(d) {
             return '@' + d;
@@ -151,7 +151,7 @@ $(document).on('top_hashtags', function(emitter, top_hashtags) {
     var yaxis = {
         gety: get_hashtag,
         url: function(d) {
-            return 'http://twitter.com/search?q=' + encodeURI(d);
+            return 'http://twitter.com/search?q=' + encodeURIComponent(d);
         },
         text: function(d) {
             return d;
