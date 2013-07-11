@@ -177,7 +177,10 @@ module.exports = function (nconf) {
             {
                 id: false,
                 strict: false,
-                capped: 1024 * 1024 * nconf.get('mongodb.cap.tweet')
+                capped: { 
+                    size: 1024 * 1024 * nconf.get('mongodb:cap:tweet'),
+                    autoIndexId: true
+                }
             }
         );
 
@@ -200,7 +203,7 @@ module.exports = function (nconf) {
             },
             {
                 strict: false,
-                capped: 1024 * 1024 * nconf.get('mongodb.cap.mapreduce')
+                capped: 1024 * 1024 * nconf.get('mongodb:cap:mapreduce')
             }
         );
         mapreduce.index({
@@ -223,7 +226,7 @@ module.exports = function (nconf) {
             },
             {
                 strict: true,
-                capped: 1024 * 1024 * nconf.get('mongodb.cap.config')
+                capped: 1024 * 1024 * nconf.get('mongodb:cap:config')
             }
         );
 
@@ -259,7 +262,7 @@ module.exports = function (nconf) {
             },
             {
                 strict: true,
-                capped: 1024 * 1024 * nconf.get('mongodb.cap.results')
+                capped: 1024 * 1024 * nconf.get('mongodb:cap:results')
             }
         );
 

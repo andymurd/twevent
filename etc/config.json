@@ -1,10 +1,6 @@
 {
     "keywords": [
-        "awesome",
-        "cool",
-        "rad",
-        "gnarly",
-        "groovy"
+        "#startupadl"
     ],
     "twitter": {
         "consumer_key": "SECRET",
@@ -15,8 +11,8 @@
     "mongodb": {
         "connection": "mongodb://SECRET",
         "cap": {
-            "tweet": 450,
-            "mapreduce": 10,
+            "tweet": 100,
+            "mapreduce": 60,
             "config": 1,
             "results": 10
         }
