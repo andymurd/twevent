@@ -177,7 +177,7 @@ module.exports = function (nconf) {
             {
                 id: false,
                 strict: false,
-                capped: { 
+                capped: {
                     size: 1024 * 1024 * nconf.get('mongodb:cap:tweet'),
                     autoIndexId: true
                 }
