@@ -88,6 +88,16 @@ var io = socketio.listen(app.listen(port, function() {
     console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 }));
 
+// Handle requested exit gracefully
+process.once('SIGTERM', function() {
+    console.log('SIGTERM received - shutting down');
+    app.close();
+    setTimeout(function() {
+        console.log('Exiting');
+        process.exit(-1);
+    }, 3000);
+});
+
 // Heroku does not support websockets
 if (nconf.get('socketio:websockets') === false) {
     console.log('WARNING: Websockets disabled');

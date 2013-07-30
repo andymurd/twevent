@@ -49,7 +49,7 @@ module.exports = function (nconf) {
         });
 
         // Count the tweets per user
-        emit('tweets_per_user:' + this.user.screen_name, {
+        emit('tweets_per_user:' + this.user.screen_name.toLowerCase(), {
             extra: {
                 screen_name: this.user.screen_name
             },
@@ -59,7 +59,7 @@ module.exports = function (nconf) {
 
         // Count the hashtags
         this.entities.hashtags.forEach(function(hashtag) {
-            emit('#' + hashtag.text, {
+            emit('#' + hashtag.text.toLowerCase(), {
                 extra: {
                     hashtag: '#' + hashtag.text
                 },
@@ -96,7 +96,7 @@ module.exports = function (nconf) {
 
         // Count the mentions
         this.entities.user_mentions.forEach(function(mention) {
-            emit('mention:' + mention.screen_name, {
+            emit('mention:' + mention.screen_name.toLowerCase(), {
                 extra: {
                     screen_name: mention.screen_name
                 },
