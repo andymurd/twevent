@@ -24,14 +24,14 @@ Getting Started
 
 1.  Clone [this repository](https://github.com/andymurd/twevent)
 
-    git clone https://github.com/andymurd/twevent.git
+    `git clone https://github.com/andymurd/twevent.git`
 
 2.  Edit etc/config.json to replace the "SECRET" tokens with details 
     of your Twitter API keys and MongoDB connection.
     
 3.  Run it
 
-    node app.js
+    `node app.js`
 
 4.  Browse to http://localhost:3000 to see the results
 
@@ -56,5 +56,12 @@ Your Heroku environment will need to be configured with the following environmen
 *  *TWITTER_ACCESS_TOKEN_KEY* - Used to connect to the Twitter Streaming API
 *  *TWITTER_ACCESS_TOKEN_SECRET* - Used to connect to the Twitter Streaming API
 
+*Note:* Heroku's cedar stack does not support WebSockets, so you'll need to edit `etc/config.json` as follows:
+
+```javascript
+    "socketio": {
+        "websockets": false
+    },
+```
 
 
