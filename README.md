@@ -26,6 +26,11 @@ Getting Started
 
     `git clone https://github.com/andymurd/twevent.git`
 
+Note that the repo has submodules, so you will need:
+
+    `git submodule init`
+    `git submodule update`
+
 2.  Edit etc/config.json to replace the "SECRET" tokens with details 
     of your Twitter API keys and MongoDB connection.
     

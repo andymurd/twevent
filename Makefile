@@ -26,12 +26,12 @@ css: public/stylesheets/style.min.css
 
 public/javascripts/twevent.min.js: js-static-analysis
 	@echo "Compressing JavaScript"
-	@uglifyjs $(CLIENT_JS_FILES) > public/javascripts/twevent.min.js
+	@node_modules/.bin/uglifyjs $(CLIENT_JS_FILES) > public/javascripts/twevent.min.js
 
 js-static-analysis: $(SERVER_JS_FILES) $(CLIENT_JS_FILES)
 	@echo "Analysing JavaScript"
-	@jshint --config .jshintrc-server $(SERVER_JS_FILES)
-	@jshint --config .jshintrc-client $(CLIENT_JS_FILES)
+	@node_modules/.bin/jshint --config .jshintrc-server $(SERVER_JS_FILES)
+	@node_modules/.bin/jshint --config .jshintrc-client $(CLIENT_JS_FILES)
 
 js: public/javascripts/twevent.min.js
 
