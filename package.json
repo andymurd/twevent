@@ -1,37 +1,41 @@
 {
-    "name": "infograftwit"
-  , "version": "0.0.1"
-  , "private": true
-  , "licenses": [
-       {
-         "type": "GPLv3"
-       , "url": "https://github.com/andymurd/twevent/blob/master/LICENSE.md"
-       }
-    ]
-  , "scripts": {
-      "install": "make install",
-      "run": "make run"
+  "name": "infograftwit",
+  "version": "0.0.1",
+  "private": true,
+  "licenses": [
+    {
+      "type": "GPLv3",
+      "url": "https://github.com/andymurd/twevent/blob/master/LICENSE.md"
     }
-  , "repository": {
-      "type": "git"
-    , "url": "https://github.com/andymurd/twevent.git"
-  }
-  , "dependencies": {
-      "express": "2.5.x"
-    , "jade": "0.31.x"
-    , "ntwitter": "0.5.x"
-    , "nconf": "0.6.x"
-    , "async": "0.2.x"
-    , "mongoose": "3.6.x"
-    , "socket.io": "0.9.x"
-    , "recess": "1.1.8"
-    , "jshint": "0.7.1"
-    , "uglify-js": ">= 0.0.1"
-  }
-  , "devDependencies": {
-  }
-  , "engines": {
-      "node": "0.10.x"
-    , "npm":  "1.2.x"
+  ],
+  "scripts": {
+    "install": "make install",
+    "run": "make run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andymurd/twevent.git"
+  },
+  "dependencies": {
+    "async": "0.2.x",
+    "body-parser": "^1.20.1",
+    "cookie-parser": "^1.4.6",
+    "errorhandler": "^1.5.1",
+    "express": "^4.18.2",
+    "jade": "0.31.x",
+    "method-override": "^3.0.0",
+    "mongoose": "^6.6.7",
+    "nconf": "^0.12.0",
+    "ntwitter": "0.5.x",
+    "recess": "1.1.8",
+    "socket.io": "^4.5.3"
+  },
+  "devDependencies": {
+    "jshint": "^2.13.5",
+    "uglify-js": "^2.6.0"
+  },
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.2.x"
   }
 }
