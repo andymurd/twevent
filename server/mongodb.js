@@ -6,7 +6,7 @@
  */
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var ObjectID = mongoose.mongo.BSONPure.ObjectID;
+var ObjectID = mongoose.Types.ObjectID;
 
 // The database handle
 var db;

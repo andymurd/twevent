@@ -5,6 +5,10 @@
  * Module dependencies.
  */
 var express  = require('express');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var errorHandler = require('errorhandler');
+var methodOverride = require('method-override');
 var socketio = require('socket.io');
 var nconf    = require('nconf');
 var async    = require('async');
@@ -50,43 +54,46 @@ var feature_exec = function(name, fn) {
 };
 
 // Create the HTTP app
-var app = module.exports = express.createServer();
+var app = module.exports = express();
 
 // Configuration
-app.configure(function(){
-    app.set('views', __dirname + '/views');
-    app.set('view engine', 'jade');
-    app.use(express.bodyParser());
-    app.use(express.methodOverride());
-    app.use(express.cookieParser());
-    //app.use(express.session({ secret: nconf.get('express:session_secret') }));
-    app.use(app.router);
-    app.use(express['static'](__dirname + '/public'));
-});
-
-app.configure('development', function() {
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-});
-
-app.configure('production', function() {
-  app.use(express.errorHandler());
-});
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(methodOverride(function (req, res) {
+    if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+        return req.body._method;
+    }
+}));
+app.use(cookieParser());
+//app.use(express.session({ secret: nconf.get('express:session_secret') }));
 
 // Routes
-app.get('/', function(req, res) {
+app.route('/').get(function(req, res) {
     routes.index(req, res);
 });
-app.get('/admin', function(req, res) {
+app.route('/admin').get(function(req, res) {
     res.keywords = keywords;
     res.features = nconf.get('features');
     routes.admin_form(req, res);
 });
 
+app.use(express['static'](__dirname + '/public'));
+
+if (process.env.NODE_ENV === 'production') {
+    app.use(errorHandler());
+} else {
+    app.use(errorHandler({ dumpExceptions: true, showStack: true }));
+}
+
 // Start accepting client requests
 var port = process.env.PORT || nconf.get('express:port') || 3000;
-var io = socketio.listen(app.listen(port, function() {
+var server = require("http").Server(app);
+var io = socketio(server);
+app.listen(port, function() {
     console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-}));
+});
 
 // Handle requested exit gracefully
 process.once('SIGTERM', function() {
